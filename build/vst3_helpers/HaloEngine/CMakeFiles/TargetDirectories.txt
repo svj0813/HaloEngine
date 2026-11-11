@@ -1,0 +1,3 @@
+/home/shauryaj/AudioDev/HaloEngine/build/vst3_helpers/HaloEngine/CMakeFiles/vst3_helper.dir
+/home/shauryaj/AudioDev/HaloEngine/build/vst3_helpers/HaloEngine/CMakeFiles/edit_cache.dir
+/home/shauryaj/AudioDev/HaloEngine/build/vst3_helpers/HaloEngine/CMakeFiles/rebuild_cache.dir

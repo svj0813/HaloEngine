@@ -1,0 +1,81 @@
+{
+	"abstract" : true,
+	"backtrace" : 4,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"_juce_create_pkgconfig_target",
+			"juce_add_module",
+			"juce_add_modules",
+			"set_target_properties"
+		],
+		"files" : 
+		[
+			"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/JUCEModuleSupport.cmake",
+			"/home/shauryaj/AudioDev/JUCE/modules/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 3,
+				"file" : 1,
+				"line" : 33,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 679,
+				"parent" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 636,
+				"parent" : 2
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 378,
+				"parent" : 3
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 396,
+				"parent" : 3
+			}
+		]
+	},
+	"codemodelVersion" : 
+	{
+		"major" : 2,
+		"minor" : 11
+	},
+	"id" : "pkgconfig_juce_graphics_LINUX_DEPS::@fa2799be4f27ec528a31",
+	"interfaceLinkLibraries" : 
+	[
+		{
+			"backtrace" : 5,
+			"fragment" : "/usr/lib/x86_64-linux-gnu/libfontconfig.so"
+		},
+		{
+			"backtrace" : 5,
+			"fragment" : "/usr/lib/x86_64-linux-gnu/libfreetype.so"
+		}
+	],
+	"name" : "pkgconfig_juce_graphics_LINUX_DEPS",
+	"paths" : 
+	{
+		"build" : "JUCE/modules",
+		"source" : "/home/shauryaj/AudioDev/JUCE/modules"
+	},
+	"sources" : [],
+	"type" : "INTERFACE_LIBRARY"
+}

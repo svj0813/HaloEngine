@@ -1,0 +1,75 @@
+{
+	"abstract" : true,
+	"backtrace" : 4,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"_juce_create_pkgconfig_target",
+			"include",
+			"set_target_properties"
+		],
+		"files" : 
+		[
+			"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/JUCEModuleSupport.cmake",
+			"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/JUCEUtils.cmake",
+			"/home/shauryaj/AudioDev/JUCE/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 2
+			},
+			{
+				"command" : 2,
+				"file" : 2,
+				"line" : 77,
+				"parent" : 0
+			},
+			{
+				"file" : 1,
+				"parent" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 108,
+				"parent" : 2
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 378,
+				"parent" : 3
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 396,
+				"parent" : 3
+			}
+		]
+	},
+	"codemodelVersion" : 
+	{
+		"major" : 2,
+		"minor" : 11
+	},
+	"id" : "pkgconfig_JUCE_CURL_LINUX_DEPS::@b2264a885a0e6308e827",
+	"interfaceLinkLibraries" : 
+	[
+		{
+			"backtrace" : 5,
+			"fragment" : "/usr/lib/x86_64-linux-gnu/libcurl.so"
+		}
+	],
+	"name" : "pkgconfig_JUCE_CURL_LINUX_DEPS",
+	"paths" : 
+	{
+		"build" : "JUCE",
+		"source" : "/home/shauryaj/AudioDev/JUCE"
+	},
+	"sources" : [],
+	"type" : "INTERFACE_LIBRARY"
+}

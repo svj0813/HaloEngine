@@ -1,0 +1,85 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"/home/shauryaj/AudioDev/JUCE/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 167,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 191,
+				"parent" : 0
+			}
+		]
+	},
+	"codemodelVersion" : 
+	{
+		"major" : 2,
+		"minor" : 11
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "lib/cmake/JUCE-9.0.5",
+			"paths" : 
+			[
+				"build/JUCE/JUCEConfigVersion.cmake",
+				"build/JUCE/JUCEConfig.cmake",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/FindCppwinrt.cmake",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/FindWebView2.cmake",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/FindWindowsMIDIServices.cmake",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/JUCECheckAtomic.cmake",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/JUCEHelperTargets.cmake",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/JUCEModuleSupport.cmake",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/JUCEUtils.cmake",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/JuceLV2Defines.h.in",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/LaunchScreen.storyboard",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/PIPAudioProcessor.cpp.in",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/PIPAudioProcessorWithARA.cpp.in",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/PIPComponent.cpp.in",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/PIPConsole.cpp.in",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/RecentFilesMenuTemplate.nib",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/UnityPluginGUIScript.cs.in",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/bundleplaceholder.mm",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/checkBundleSigning.cmake",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/copyDir.cmake",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/juce_LinuxSubprocessHelper.cpp",
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/juce_runtime_arch_detection.cpp"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "lib/cmake/JUCE-9.0.5",
+			"paths" : 
+			[
+				"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/juce_vst3_helper"
+			],
+			"type" : "directory"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "JUCE",
+		"source" : "/home/shauryaj/AudioDev/JUCE"
+	}
+}

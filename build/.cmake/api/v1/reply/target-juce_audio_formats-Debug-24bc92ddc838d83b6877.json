@@ -1,0 +1,127 @@
+{
+	"abstract" : true,
+	"backtrace" : 4,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"_juce_add_interface_library",
+			"juce_add_module",
+			"juce_add_modules",
+			"target_link_libraries"
+		],
+		"files" : 
+		[
+			"/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/JUCEModuleSupport.cmake",
+			"/home/shauryaj/AudioDev/JUCE/modules/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 3,
+				"file" : 1,
+				"line" : 33,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 679,
+				"parent" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 489,
+				"parent" : 2
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 94,
+				"parent" : 3
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 652,
+				"parent" : 2
+			}
+		]
+	},
+	"codemodelVersion" : 
+	{
+		"major" : 2,
+		"minor" : 11
+	},
+	"id" : "juce_audio_formats::@fa2799be4f27ec528a31",
+	"interfaceCompileDependencies" : 
+	[
+		{
+			"backtrace" : 5,
+			"id" : "juce_audio_basics::@fa2799be4f27ec528a31"
+		}
+	],
+	"interfaceLinkLibraries" : 
+	[
+		{
+			"backtrace" : 5,
+			"id" : "juce_audio_basics::@fa2799be4f27ec528a31"
+		}
+	],
+	"interfaceSources" : 
+	[
+		{
+			"path" : "/home/shauryaj/AudioDev/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"path" : "/home/shauryaj/AudioDev/JUCE/modules/juce_audio_formats/juce_audio_formats_flac_1.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"path" : "/home/shauryaj/AudioDev/JUCE/modules/juce_audio_formats/juce_audio_formats_flac_2.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"path" : "/home/shauryaj/AudioDev/JUCE/modules/juce_audio_formats/juce_audio_formats_ogg.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"path" : "/home/shauryaj/AudioDev/JUCE/modules/juce_audio_formats/juce_audio_formats_opus.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"path" : "/home/shauryaj/AudioDev/JUCE/modules/juce_audio_formats/juce_audio_formats_opusfile.c",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"name" : "juce_audio_formats",
+	"paths" : 
+	{
+		"build" : "JUCE/modules",
+		"source" : "/home/shauryaj/AudioDev/JUCE/modules"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"interfaceSourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5
+			],
+			"name" : "Source Files",
+			"sourceIndexes" : []
+		}
+	],
+	"sources" : [],
+	"type" : "INTERFACE_LIBRARY"
+}

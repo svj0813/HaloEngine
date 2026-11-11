@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/shauryaj/AudioDev/HaloEngine/build/vst3_helpers/HaloEngine/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

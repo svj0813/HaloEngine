@@ -16,6 +16,7 @@ juce_add_plugin(HaloEngine
     PLUGIN_MANUFACTURER_CODE Wdsp
     PLUGIN_CODE Halo
     FORMATS VST3 Standalone
+    VST2_CATEGORY kPlugCategEffect
     PRODUCT_NAME "Halo Ambient Engine")
 
 # Tell CMake which C++ files to compile (we will make these next)
@@ -27,6 +28,9 @@ target_sources(HaloEngine PRIVATE
 
 # Use modern C++20 standard
 target_compile_features(HaloEngine PRIVATE cxx_std_20)
+target_compile_definitions(HaloEngine PUBLIC
+    JUCE_VST3_CAN_REPLACE_VST2=0
+)
 
 # Link the necessary JUCE modules (including the DSP module for our reverb/pitch math)
 target_link_libraries(HaloEngine PRIVATE
@@ -37,3 +41,4 @@ target_link_libraries(HaloEngine PRIVATE
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags)
+    juce_generate_juce_header(HaloEngine)
