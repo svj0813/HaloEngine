@@ -160,3 +160,11 @@
 11073	13886	1794682405461968396	HaloEngine_artefacts/libHalo Ambient Engine_SharedCode.a	91ac42dfbb699a3b
 13886	18159	1794682408276515421	HaloEngine_artefacts/VST3/Halo Ambient Engine.vst3/Contents/x86_64-linux/Halo Ambient Engine.so	c83d87f5ed98402a
 13886	18320	1794682408274952362	HaloEngine_artefacts/Standalone/Halo Ambient Engine	8fa006891257aa1b
+10	122	1794686609268710559	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/cmake.verify_globs	17d07824487757f2
+140	277	1794686609398708335	CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
+140	277	1794686609398708335	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
+139	15385	1794686609397708352	CMakeFiles/HaloEngine.dir/Source/PluginEditor.cpp.o	b46713aeccec0f48
+137	16039	1794686609395708387	CMakeFiles/HaloEngine.dir/Source/PluginProcessor.cpp.o	20ce9ddaadfe28d8
+16040	19283	1794686625300417648	HaloEngine_artefacts/libHalo Ambient Engine_SharedCode.a	91ac42dfbb699a3b
+19283	25346	1794686628542354712	HaloEngine_artefacts/Standalone/Halo Ambient Engine	8fa006891257aa1b
+19285	25747	1794686628544354673	HaloEngine_artefacts/VST3/Halo Ambient Engine.vst3/Contents/x86_64-linux/Halo Ambient Engine.so	c83d87f5ed98402a

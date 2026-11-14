@@ -3,9 +3,6 @@
 #include "PluginProcessor.h"
 #include <array>
 
-// ==============================================================================
-// BOUTIQUE STUDIO HARDWARE LOOK AND FEEL (FUNK-WOLF / HiFAL STYLE)
-// ==============================================================================
 class HaloLookAndFeel : public juce::LookAndFeel_V4
 {
 public:
@@ -14,6 +11,10 @@ public:
     void drawRotarySlider (juce::Graphics& g, int x, int y, int width, int height,
                            float sliderPosProportional, float rotaryStartAngle,
                            float rotaryEndAngle, juce::Slider& slider) override;
+
+    void drawLinearSlider (juce::Graphics& g, int x, int y, int width, int height,
+                           float sliderPos, float minSliderPos, float maxSliderPos,
+                           const juce::Slider::SliderStyle, juce::Slider& slider) override;
 
     juce::Label* createSliderTextBox (juce::Slider& slider) override;
 
@@ -27,9 +28,6 @@ public:
                          bool shouldDrawButtonAsDown) override;
 };
 
-// ==============================================================================
-// TOP PANORAMIC SPECTRUM & HARMONIC CURVE VISUALIZER
-// ==============================================================================
 class PanoramicHarmonicDisplay : public juce::Component
 {
 public:
@@ -42,9 +40,16 @@ private:
     float animPhase = 0.0f;
 };
 
-// ==============================================================================
-// VERTICAL CALIBRATED LED METER STRIP
-// ==============================================================================
+class SynthOscilloscope : public juce::Component
+{
+public:
+    SynthOscilloscope (HaloEngineAudioProcessor& proc);
+    void paint (juce::Graphics& g) override;
+
+private:
+    HaloEngineAudioProcessor& processor;
+};
+
 class VerticalMeterStrip : public juce::Component
 {
 public:
@@ -59,9 +64,6 @@ private:
     float levelR = 0.0f;
 };
 
-// ==============================================================================
-// ANODIZED 1-OCTAVE HARDWARE PIANO KEYBED (7 NATURALS + 5 RAISED SHARPS)
-// ==============================================================================
 class HardwareKeybed : public juce::Component
 {
 public:
@@ -79,9 +81,6 @@ private:
     const juce::StringArray noteNames { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
 };
 
-// ==============================================================================
-// MILLED HARDWARE TOGGLE SWITCH & OLED PITCH READOUT
-// ==============================================================================
 class HardwareDroneSwitch : public juce::Component
 {
 public:
@@ -94,9 +93,6 @@ private:
     const juce::StringArray noteNames { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
 };
 
-// ==============================================================================
-// COMPACT RECESSED OLED X/Y MORPH PAD
-// ==============================================================================
 class HarmonicXYPad : public juce::Component
 {
 public:
@@ -112,9 +108,6 @@ private:
     float animPhase = 0.0f;
 };
 
-// ==============================================================================
-// MAIN FLAGSHIP VST EDITOR
-// ==============================================================================
 class PluginEditor : public juce::AudioProcessorEditor,
                      private juce::Timer
 {
@@ -127,29 +120,33 @@ public:
 
 private:
     void timerCallback() override;
+    void switchTab (int tabIndex);
     void configureKnob (juce::Slider& slider, juce::Label& label,
                         const juce::String& text, juce::Colour accent);
+    void configureVerticalFader (juce::Slider& slider, juce::Label& label,
+                                 const juce::String& text, juce::Colour accent);
     void applyPreset (int idx);
 
     HaloEngineAudioProcessor& audioProcessor;
     HaloLookAndFeel haloLookAndFeel;
 
-    // Top Preset & Utility Bar
+    // Top Navigation Tabs & Preset Toolbar
+    juce::TextButton tabMainBtn  { "STAGE VIEW" };
+    juce::TextButton tabSynthBtn { "SYNTH ENGINE" };
+    int activeTab = 0;
+
     juce::TextButton prevPresetBtn { "<" };
     juce::TextButton presetNameBtn { "01 // CATHEDRAL HALO" };
     juce::TextButton nextPresetBtn { ">" };
     int currentPresetIdx = 0;
 
-    // Panoramic Top Visualizer
-    PanoramicHarmonicDisplay canopyDisplay;
-
-    // Left & Right Vertical Meter Rails
     VerticalMeterStrip leftDuckMeter  { "DUCK", true };
     VerticalMeterStrip rightOutMeter  { "OUT",  false };
 
-    // Section 1: Hardware Piano Keybed, Mechanical Drone Switch & Assist
-    HardwareKeybed      keybed;
-    HardwareDroneSwitch droneSwitch;
+    // TAB 0: STAGE PERFORMANCE
+    PanoramicHarmonicDisplay canopyDisplay;
+    HardwareKeybed           keybed;
+    HardwareDroneSwitch      droneSwitch;
 
     juce::TextButton suggestKeyBtn { "LOCKED: C" };
     int currentSuggestedKey = -1;
@@ -161,16 +158,28 @@ private:
     juce::Label  droneLevelLabel;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> droneLevelAttach;
 
-    // Section 2: Recessed OLED X/Y Morph Pad
     HarmonicXYPad xyPad;
 
-    // Section 3: Shimmer & Ambience Engine Knobs + Prayer Macro
     juce::Slider shimmerSlider, decaySlider, duckSlider, mixSlider;
     juce::Label  shimmerLabel, decayLabel, duckLabel, mixLabel;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> shimmerAttach, decayAttach, duckAttach, mixAttach;
 
     juce::TextButton prayerMacroBtn { "PRAYER / SWELL" };
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> prayerMacroAttach;
+
+    // TAB 1: SYNTH & VOICING ENGINE LAB
+    SynthOscilloscope oscilloscope;
+
+    std::array<juce::Slider, 6> voiceFaders;
+    std::array<juce::Label,  6> voiceLabels;
+    std::array<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>, 6> voiceAttachments;
+
+    juce::Slider detuneSlider, widthSlider, resSlider, driveSlider, glideSlider, attackSlider, releaseSlider;
+    juce::Label  detuneLabel,  widthLabel,  resLabel,  driveLabel,  glideLabel,  attackLabel,  releaseLabel;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>
+        detuneAttach, widthAttach, resAttach, driveAttach, glideAttach, attackAttach, releaseAttach;
+
+    juce::MidiKeyboardComponent synthKeyboard;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginEditor)
 };
