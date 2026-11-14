@@ -3201,3 +3201,33 @@ events:
         
       exitCode: 0
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/JUCECheckAtomic.cmake:73 (try_compile)"
+      - "/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/JUCECheckAtomic.cmake:128 (_juce_create_atomic_target)"
+      - "/home/shauryaj/AudioDev/JUCE/extras/Build/CMake/JUCEModuleSupport.cmake:53 (include)"
+      - "/home/shauryaj/AudioDev/JUCE/CMakeLists.txt:57 (include)"
+    directories:
+      source: "/home/shauryaj/AudioDev/HaloEngine/build/JUCE/check_atomic_dir_FW7vJCTWSvRsK3Rm/CMakeFiles/CMakeTmp"
+      binary: "/home/shauryaj/AudioDev/HaloEngine/build/JUCE/check_atomic_dir_FW7vJCTWSvRsK3Rm/CMakeFiles/CMakeTmp"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_CXX_STDLIB_MODULES_JSON: ""
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "compile_result"
+      cached: true
+      stdout: |
+        Change Dir: '/home/shauryaj/AudioDev/HaloEngine/build/JUCE/check_atomic_dir_FW7vJCTWSvRsK3Rm/CMakeFiles/CMakeTmp'
+        
+        Run Build Command(s): /usr/bin/ninja-build -v cmTC_daae9
+        [1/2] /usr/bin/g++   -std=c++17 -o CMakeFiles/cmTC_daae9.dir/check_atomic_KxtQ0XCYtXzjIaG5.cpp.o -c /home/shauryaj/AudioDev/HaloEngine/build/JUCE/check_atomic_KxtQ0XCYtXzjIaG5.cpp
+        [2/2] : && /usr/bin/g++   CMakeFiles/cmTC_daae9.dir/check_atomic_KxtQ0XCYtXzjIaG5.cpp.o -o cmTC_daae9   && :
+        
+      exitCode: 0
+...

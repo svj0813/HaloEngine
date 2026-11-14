@@ -1,44 +1,50 @@
 cmake_minimum_required(VERSION 3.22)
+
 project(HaloEngine VERSION 1.0.0)
 
-# Tell CMake where to find the JUCE framework (one folder up)
-add_subdirectory(../JUCE JUCE)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Define the VST3 and Standalone plugin properties
+add_subdirectory(/home/shauryaj/AudioDev/JUCE JUCE)
+
 juce_add_plugin(HaloEngine
-    COMPANY_NAME "WorshipDSP"
+    COMPANY_NAME "ShawarmaAudio"
     IS_SYNTH TRUE
     NEEDS_MIDI_INPUT TRUE
     NEEDS_MIDI_OUTPUT FALSE
     IS_MIDI_EFFECT FALSE
-    EDITOR_WANTS_KEYBOARD_FOCUS TRUE
-    COPY_PLUGIN_AFTER_BUILD TRUE
-    PLUGIN_MANUFACTURER_CODE Wdsp
+    EDITOR_WANTS_KEYBOARD_FOCUS FALSE
+    COPY_PLUGIN_AFTER_BUILD FALSE
+    PLUGIN_MANUFACTURER_CODE Shwr
     PLUGIN_CODE Halo
     FORMATS VST3 Standalone
-    VST2_CATEGORY kPlugCategEffect
-    PRODUCT_NAME "Halo Ambient Engine")
-
-# Tell CMake which C++ files to compile (we will make these next)
-target_sources(HaloEngine PRIVATE
-    Source/PluginProcessor.cpp
-    Source/PluginProcessor.h
-    Source/PluginEditor.cpp
-    Source/PluginEditor.h)
-
-# Use modern C++20 standard
-target_compile_features(HaloEngine PRIVATE cxx_std_20)
-target_compile_definitions(HaloEngine PUBLIC
-    JUCE_VST3_CAN_REPLACE_VST2=0
+    PRODUCT_NAME "Halo Ambient Engine"
 )
 
-# Link the necessary JUCE modules (including the DSP module for our reverb/pitch math)
-target_link_libraries(HaloEngine PRIVATE
-    juce::juce_audio_utils
-    juce::juce_dsp
-    juce::juce_audio_processors
+juce_generate_juce_header(HaloEngine)
+
+target_sources(HaloEngine
+    PRIVATE
+        Source/PluginProcessor.cpp
+        Source/PluginProcessor.h
+        Source/PluginEditor.cpp
+        Source/PluginEditor.h
+        Source/DSP/SupermassiveTank.h
+)
+
+target_compile_definitions(HaloEngine
     PUBLIC
-    juce::juce_recommended_config_flags
-    juce::juce_recommended_lto_flags
-    juce::juce_recommended_warning_flags)
-    juce_generate_juce_header(HaloEngine)
+        JUCE_WEB_BROWSER=0
+        JUCE_USE_CURL=0
+        JUCE_VST3_CAN_REPLACE_VST2=0
+)
+
+target_link_libraries(HaloEngine
+    PRIVATE
+        juce::juce_audio_utils
+        juce::juce_dsp
+    PUBLIC
+        juce::juce_recommended_config_flags
+        juce::juce_recommended_lto_flags
+        juce::juce_recommended_warning_flags
+)

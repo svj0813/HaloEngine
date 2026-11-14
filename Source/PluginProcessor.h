@@ -1,5 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
+#include "DSP/SupermassiveTank.h"
 #include <array>
 #include <vector>
 #include <atomic>
@@ -36,7 +37,6 @@ public:
     juce::AudioProcessorValueTreeState apvts;
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
-    // Shared MIDI keyboard state for clickable Synth Tab keyboard & external MIDI
     juce::MidiKeyboardState keyboardState;
 
     // Thread-safe UI telemetry & key detection atomics
@@ -53,46 +53,61 @@ private:
     void updateDroneFrequencies (int keyIndex, bool snapImmediately);
     void analyzeIncomingPitch();
 
+    static inline float polyBlep (double t, double dt) noexcept
+    {
+        if (t < dt)
+        {
+            t /= dt;
+            return static_cast<float> (t + t - t * t - 1.0);
+        }
+        if (t > 1.0 - dt)
+        {
+            t = (t - 1.0) / dt;
+            return static_cast<float> (t * t + t + t + 1.0);
+        }
+        return 0.0f;
+    }
+
     double currentSampleRate = 44100.0;
     int lastKeyIndex = -1;
     float lastGlideSec = 0.80f;
 
-    // 6-Voice Harmonic Drone Engine (Sub, Root, 5th, Oct, 9th, High 5th)
     static constexpr int numVoices = 6;
-    std::array<juce::dsp::Oscillator<float>, numVoices> warmOscs;
-    std::array<juce::dsp::Oscillator<float>, numVoices> choirOscs;
-    std::array<juce::dsp::Oscillator<float>, numVoices> detuneOscs;
+    static constexpr int unisonCount = 7;
+
+    std::array<std::array<double, unisonCount>, numVoices> dronePhases {};
+    std::array<double, numVoices> droneSubPhases {};
     std::array<juce::SmoothedValue<float, juce::ValueSmoothingTypes::Multiplicative>, numVoices> voiceFreqSmoothed;
 
-    // Polyphonic MIDI Synth Voices (8-voice playable layer from Synth Tab or MIDI controller)
     struct MidiVoice
     {
         bool active = false;
+        bool releasing = false;
         int midiNote = -1;
         float freq = 261.63f;
-        double phase1 = 0.0;
-        double phase2 = 0.0;
         float env = 0.0f;
-        bool releasing = false;
+        double subPhase = 0.0;
+        std::array<double, unisonCount> phases {};
     };
     static constexpr int maxMidiVoices = 8;
     std::array<MidiVoice, maxMidiVoices> midiVoices;
 
-    juce::dsp::StateVariableTPTFilter<float> droneFilterL, droneFilterR;
+    juce::dsp::StateVariableTPTFilter<float> droneFilterL1, droneFilterL2;
+    juce::dsp::StateVariableTPTFilter<float> droneFilterR1, droneFilterR2;
+    juce::dsp::StateVariableTPTFilter<float> dcBlockL, dcBlockR;
+
     juce::SmoothedValue<float> droneGainSmoothed;
     juce::SmoothedValue<float> prayerMacroSmoothed;
     juce::SmoothedValue<float> morphXSmoothed;
     juce::SmoothedValue<float> morphYSmoothed;
 
-    // Shimmer & Lush Stereo Ambience Engine
-    juce::Reverb stereoReverb;
-    juce::Reverb::Parameters reverbParams;
-    juce::dsp::StateVariableTPTFilter<float> shimmerFilterL, shimmerFilterR;
+    // 4-Tap Stereo BBD Ensemble Chorus
+    std::vector<float> chorusBufL, chorusBufR;
+    int chorusWriteIdx = 0;
+    double chorusLfoPhase = 0.0;
 
-    // Granular Dual-Head Octave-Up Shimmer Buffer
-    std::vector<float> pitchBufferL, pitchBufferR;
-    int pitchWriteIdx = 0;
-    float pitchReadPhase = 0.0f;
+    // Phase 1: Valhalla Supermassive-Class 8-Channel Modulated FDN Space Engine
+    SupermassiveTank supermassiveTank;
 
     // Reactive Auto-Ducking Envelope Follower
     float inputEnvelope = 0.0f;

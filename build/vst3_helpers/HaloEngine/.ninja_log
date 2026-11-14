@@ -1,3 +1,5 @@
 # ninja log v7
 1	6987	1794677898790346007	CMakeFiles/vst3_helper.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/VST3/juce_VST3ManifestHelper.cpp.o	a11a271093a74b3a
 6989	7174	1794677905778277057	vst3_helper	1cbbf0793ea65363
+7	15645	1794687811538576209	CMakeFiles/vst3_helper.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/VST3/juce_VST3ManifestHelper.cpp.o	24a03e425fed01a4
+15645	16062	1794687827177526646	vst3_helper	1cbbf0793ea65363

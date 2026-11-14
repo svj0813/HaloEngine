@@ -3298,3 +3298,33 @@ events:
         
       exitCode: 0
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "extras/Build/CMake/JUCECheckAtomic.cmake:73 (try_compile)"
+      - "extras/Build/CMake/JUCECheckAtomic.cmake:128 (_juce_create_atomic_target)"
+      - "extras/Build/CMake/JUCEModuleSupport.cmake:53 (include)"
+      - "CMakeLists.txt:57 (include)"
+    directories:
+      source: "/home/shauryaj/AudioDev/HaloEngine/build/JUCE/tools/check_atomic_dir_9NRoNnrgXo4bAe4t/CMakeFiles/CMakeTmp"
+      binary: "/home/shauryaj/AudioDev/HaloEngine/build/JUCE/tools/check_atomic_dir_9NRoNnrgXo4bAe4t/CMakeFiles/CMakeTmp"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_CXX_STDLIB_MODULES_JSON: ""
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "compile_result"
+      cached: true
+      stdout: |
+        Change Dir: '/home/shauryaj/AudioDev/HaloEngine/build/JUCE/tools/check_atomic_dir_9NRoNnrgXo4bAe4t/CMakeFiles/CMakeTmp'
+        
+        Run Build Command(s): /usr/bin/ninja-build -v cmTC_f6696
+        [1/2] /usr/bin/c++   -std=c++17 -o CMakeFiles/cmTC_f6696.dir/check_atomic_TzIkAhdV9Iu1XkHw.cpp.o -c /home/shauryaj/AudioDev/HaloEngine/build/JUCE/tools/check_atomic_TzIkAhdV9Iu1XkHw.cpp
+        [2/2] : && /usr/bin/c++   CMakeFiles/cmTC_f6696.dir/check_atomic_TzIkAhdV9Iu1XkHw.cpp.o -o cmTC_f6696   && :
+        
+      exitCode: 0
+...

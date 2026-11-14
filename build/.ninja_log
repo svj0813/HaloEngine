@@ -1,12 +1,12 @@
 # ninja log v7
-7	73	1794677460401674180	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/cmake.verify_globs	17d07824487757f2
+8	136	1794687807281589701	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/cmake.verify_globs	17d07824487757f2
 69	79	1794675630765216134	HaloEngine_artefacts/JuceLibraryCode/JuceHeader.h	d748b935a4a5a24e
 69	79	1794675630765216134	/home/shauryaj/AudioDev/HaloEngine/build/HaloEngine_artefacts/JuceLibraryCode/JuceHeader.h	d748b935a4a5a24e
-69	17431	1794675630757342549	CMakeFiles/HaloEngine_vst3_helper	991762df13928e79
-69	17431	1794675630757342549	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/HaloEngine_vst3_helper	991762df13928e79
-84	42078	1794677460480179615	CMakeFiles/HaloEngine.dir/Source/PluginEditor.cpp.o	b46713aeccec0f48
+140	277	1794686609398708335	CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
+140	277	1794686609398708335	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
+139	15385	1794686609397708352	CMakeFiles/HaloEngine.dir/Source/PluginEditor.cpp.o	b46713aeccec0f48
 84	53774	1794677460480502442	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_processors/juce_audio_processors.cpp.o	42af0aef22dd97c0
-84	35799	1794677460478673419	CMakeFiles/HaloEngine.dir/Source/PluginProcessor.cpp.o	20ce9ddaadfe28d8
+137	16039	1794686609395708387	CMakeFiles/HaloEngine.dir/Source/PluginProcessor.cpp.o	20ce9ddaadfe28d8
 85	43561	1794677460480848248	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_gui_extra/juce_gui_extra.cpp.o	987b69d94c4e6994
 88	38210	1794677460482673379	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_gui_basics/juce_gui_basics_2.cpp.o	62f90a1e51f564e6
 38211	88306	1794677498606296221	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_gui_basics/juce_gui_basics_4.cpp.o	d403f391210268b2
@@ -44,127 +44,108 @@
 164775	168770	1794677625170045817	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_formats/juce_audio_formats_opusfile.c.o	7db76c100e3be7b6
 134858	183933	1794677595254340995	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_utils/juce_audio_utils.cpp.o	2a90001b861387fa
 164319	178813	1794677624715050306	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_formats/juce_audio_formats_opus.c.o	8ac94fc78493ce1b
-129636	129733	1794675760323470505	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o	f045c3c4d29bd246
-129734	129805	1794675760421471379	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o	982b033ef7b26f8a
-129805	129911	1794675760492472013	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o	7f639c506c3d8428
-129911	129978	1794675760598472959	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o	30fc0aef0618455d
-145334	185454	1794677605730237629	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp.o	6780b8394b96981d
-139783	140053	1794675770470561056	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o	98bd38034f54075b
-140053	140129	1794675770739563456	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o	1d4a357ff270a598
-140129	140205	1794675770815564134	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o	566ffb38c3a03b33
-140206	140278	1794675770892564822	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o	4f98ff704f31dd1a
-140278	140334	1794675770965565473	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o	bec1a603e7f6921e
-140335	140381	1794675771021565973	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o	c03bd0985323f49a
-140381	140415	1794675771067566383	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o	c5adbe2a19ed9326
-140415	140449	1794675771102566695	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o	c971e255d734085
-140449	140484	1794675771135566990	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o	a87bfe4be4125953
-140484	140561	1794675771170567302	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o	d8038608808c629a
-43564	177463	1794677503959243265	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics.cpp.o	298cc0b5b384b10
-129978	150378	1794675760665473557	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o	5d7b08200a7d32a9
-177466	197404	1794677637860920596	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_dsp/juce_dsp.cpp.o	61a53fa9dd40f5d4
-168773	198459	1794677629168006369	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_devices/juce_audio_devices.cpp.o	568ed6dfad57f9e1
-53777	192502	1794677514173132179	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o	b422ef965d6d5489
-161662	164343	1794675792348756293	HaloEngine_artefacts/libHalo Ambient Engine_SharedCode.a	91ac42dfbb699a3b
-164343	167567	1794675795029780218	HaloEngine_artefacts/Standalone/Halo Ambient Engine	3d6b23cc110fa564
-140562	168351	1794675771248567998	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o	fb701fede30ca428
-168351	171430	1794675799038815994	HaloEngine_artefacts/VST3/Halo Ambient Engine.vst3/Contents/x86_64-linux/Halo Ambient Engine.so	fa9ee45dbfb2cb99
-128	9403	1794677897320360511	build.ninja	ff85d6303eabc726
-128	9403	1794677897313360580	/home/shauryaj/AudioDev/HaloEngine/build/cmake_install.cmake	ff85d6303eabc726
-128	9403	1794677897315360560	/home/shauryaj/AudioDev/HaloEngine/build/JUCE/cmake_install.cmake	ff85d6303eabc726
-128	9403	1794677897316360551	/home/shauryaj/AudioDev/HaloEngine/build/JUCE/modules/cmake_install.cmake	ff85d6303eabc726
-128	9403	1794677897317456271	/home/shauryaj/AudioDev/HaloEngine/build/JUCE/extras/Build/cmake_install.cmake	ff85d6303eabc726
-128	9403	1794677897318360531	/home/shauryaj/AudioDev/HaloEngine/build/JUCE/extras/Build/juceaide/cmake_install.cmake	ff85d6303eabc726
-22	162	1794677897466359070	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/cmake.verify_globs	17d07824487757f2
-185	263	1794677897629357462	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o	218ad49a555172af
 179	278	1794677897624510746	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o	8ea551d4bb55dcc4
 182	291	1794677897626357492	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o	26e210c90b156ef2
 182	294	1794677897627357482	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o	d5c8784d39b00277
-294	419	1794677897738356387	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o	ddfa1e132d2729f0
+185	263	1794677897629357462	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o	218ad49a555172af
+145334	185454	1794677605730237629	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp.o	6780b8394b96981d
 279	471	1794677897723356535	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o	41633c883c545af9
 291	485	1794677897735356416	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o	dc9a09d33dad3e2e
-179	5504	1794677897623357521	HaloEngine_artefacts/libHalo Ambient Engine_SharedCode.a	91ac42dfbb699a3b
-178	8522	1794677897622357531	CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-178	8522	1794677897622357531	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-8524	8598	1794677905968275182	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o	a6f8954e204f58f7
-8530	8605	1794677905974275123	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o	eb7741761d7c9847
-8525	8617	1794677905969275172	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o	c03174607e727ae8
+294	419	1794677897738356387	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o	ddfa1e132d2729f0
 8523	8628	1794677905967275192	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o	efebdf7737a5e659
+8524	8598	1794677905968275182	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o	a6f8954e204f58f7
+8525	8617	1794677905969275172	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o	c03174607e727ae8
 8526	8632	1794677905970275162	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o	f308ce799916480c
+8530	8605	1794677905974275123	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o	eb7741761d7c9847
 8598	8663	1794677906042274452	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o	817ff43607fededd
 8606	8688	1794677906050274373	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o	e24b5047396d7d12
+43564	177463	1794677503959243265	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics.cpp.o	298cc0b5b384b10
 265	13644	1794677897710356663	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o	fec1b88ed5c3263b
-13644	18170	1794677911088224664	HaloEngine_artefacts/Standalone/Halo Ambient Engine	8fa006891257aa1b
-8618	29978	1794677906062274255	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o	799cb58c64b34e85
-29978	34047	1794677927422063498	HaloEngine_artefacts/VST3/Halo Ambient Engine.vst3/Contents/x86_64-linux/Halo Ambient Engine.so	c83d87f5ed98402a
-7	75	1794678152871812970	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/cmake.verify_globs	17d07824487757f2
-88	190	1794678152954216228	CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-88	190	1794678152954216228	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-88	10317	1794678152952812144	CMakeFiles/HaloEngine.dir/Source/PluginEditor.cpp.o	b46713aeccec0f48
-87	11083	1794678152951812154	CMakeFiles/HaloEngine.dir/Source/PluginProcessor.cpp.o	20ce9ddaadfe28d8
-11083	13889	1794678163947699924	HaloEngine_artefacts/libHalo Ambient Engine_SharedCode.a	91ac42dfbb699a3b
-13889	18191	1794678166753671284	HaloEngine_artefacts/Standalone/Halo Ambient Engine	8fa006891257aa1b
-13890	18358	1794678166754671274	HaloEngine_artefacts/VST3/Halo Ambient Engine.vst3/Contents/x86_64-linux/Halo Ambient Engine.so	c83d87f5ed98402a
-6	77	1794678676241585475	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/cmake.verify_globs	17d07824487757f2
-90	186	1794678676327182887	CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-90	186	1794678676327182887	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-89	16768	1794678676324584749	CMakeFiles/HaloEngine.dir/Source/PluginProcessor.cpp.o	20ce9ddaadfe28d8
-5	76	1794678802112483975	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/cmake.verify_globs	17d07824487757f2
-88	201	1794678802196444831	CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-88	201	1794678802196444831	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-87	16615	1794678802194483257	CMakeFiles/HaloEngine.dir/Source/PluginProcessor.cpp.o	20ce9ddaadfe28d8
-5	83	1794678890572709856	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/cmake.verify_globs	17d07824487757f2
-101	218	1794678890668709016	CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-101	218	1794678890668709016	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-100	11233	1794678890667709024	CMakeFiles/HaloEngine.dir/Source/PluginEditor.cpp.o	b46713aeccec0f48
-11233	14204	1794678901800611600	HaloEngine_artefacts/libHalo Ambient Engine_SharedCode.a	91ac42dfbb699a3b
-14204	19029	1794678904771585601	HaloEngine_artefacts/Standalone/Halo Ambient Engine	8fa006891257aa1b
-14205	19320	1794678904772585592	HaloEngine_artefacts/VST3/Halo Ambient Engine.vst3/Contents/x86_64-linux/Halo Ambient Engine.so	c83d87f5ed98402a
-12	210	1794678986291872214	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/cmake.verify_globs	17d07824487757f2
-232	401	1794678986511870289	CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-232	401	1794678986511870289	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-230	19523	1794678986509870306	CMakeFiles/HaloEngine.dir/Source/PluginEditor.cpp.o	b46713aeccec0f48
-19524	24529	1794679005804701456	HaloEngine_artefacts/libHalo Ambient Engine_SharedCode.a	91ac42dfbb699a3b
-24529	30238	1794679010809657658	HaloEngine_artefacts/Standalone/Halo Ambient Engine	8fa006891257aa1b
-24532	31001	1794679010811657640	HaloEngine_artefacts/VST3/Halo Ambient Engine.vst3/Contents/x86_64-linux/Halo Ambient Engine.so	c83d87f5ed98402a
-5	75	1794679909874181889	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/cmake.verify_globs	17d07824487757f2
-87	176	1794679909957523892	CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-87	176	1794679909957523892	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-87	10032	1794679909957188836	CMakeFiles/HaloEngine.dir/Source/PluginEditor.cpp.o	b46713aeccec0f48
-87	10594	1794679909956181284	CMakeFiles/HaloEngine.dir/Source/PluginProcessor.cpp.o	20ce9ddaadfe28d8
-10594	13409	1794679920463103723	HaloEngine_artefacts/libHalo Ambient Engine_SharedCode.a	91ac42dfbb699a3b
-13409	17958	1794679923278082943	HaloEngine_artefacts/Standalone/Halo Ambient Engine	8fa006891257aa1b
-13409	17968	1794679923279232361	HaloEngine_artefacts/VST3/Halo Ambient Engine.vst3/Contents/x86_64-linux/Halo Ambient Engine.so	c83d87f5ed98402a
-11	87	1794680738713063466	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/cmake.verify_globs	17d07824487757f2
-104	249	1794680738806062779	CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-104	249	1794680738806062779	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-102	13976	1794680738804062794	CMakeFiles/HaloEngine.dir/Source/PluginProcessor.cpp.o	20ce9ddaadfe28d8
-8	120	1794680895651904956	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/cmake.verify_globs	17d07824487757f2
-136	376	1794680895779904011	CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-136	376	1794680895779904011	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-135	12410	1794680895778904018	CMakeFiles/HaloEngine.dir/Source/PluginEditor.cpp.o	b46713aeccec0f48
-12411	15721	1794680908054813398	HaloEngine_artefacts/libHalo Ambient Engine_SharedCode.a	91ac42dfbb699a3b
-15721	21305	1794680911364788965	HaloEngine_artefacts/Standalone/Halo Ambient Engine	8fa006891257aa1b
-15722	21483	1794680911366788950	HaloEngine_artefacts/VST3/Halo Ambient Engine.vst3/Contents/x86_64-linux/Halo Ambient Engine.so	c83d87f5ed98402a
-21	226	1794681997604293166	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/cmake.verify_globs	17d07824487757f2
-256	595	1794681997836291844	CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-256	595	1794681997836291844	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-249	12703	1794681997832291866	CMakeFiles/HaloEngine.dir/Source/PluginEditor.cpp.o	b46713aeccec0f48
-12704	16172	1794682010284220891	HaloEngine_artefacts/libHalo Ambient Engine_SharedCode.a	91ac42dfbb699a3b
-16172	21519	1794682013752201124	HaloEngine_artefacts/Standalone/Halo Ambient Engine	8fa006891257aa1b
-16176	22201	1794682013756201101	HaloEngine_artefacts/VST3/Halo Ambient Engine.vst3/Contents/x86_64-linux/Halo Ambient Engine.so	c83d87f5ed98402a
-5	72	1794682394394031483	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/cmake.verify_globs	17d07824487757f2
-85	185	1794682394475075167	CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-85	185	1794682394475075167	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-85	10829	1794682394474031027	CMakeFiles/HaloEngine.dir/Source/PluginEditor.cpp.o	b46713aeccec0f48
-83	11073	1794682394472031038	CMakeFiles/HaloEngine.dir/Source/PluginProcessor.cpp.o	20ce9ddaadfe28d8
-11073	13886	1794682405461968396	HaloEngine_artefacts/libHalo Ambient Engine_SharedCode.a	91ac42dfbb699a3b
-13886	18159	1794682408276515421	HaloEngine_artefacts/VST3/Halo Ambient Engine.vst3/Contents/x86_64-linux/Halo Ambient Engine.so	c83d87f5ed98402a
-13886	18320	1794682408274952362	HaloEngine_artefacts/Standalone/Halo Ambient Engine	8fa006891257aa1b
-10	122	1794686609268710559	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/cmake.verify_globs	17d07824487757f2
-140	277	1794686609398708335	CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-140	277	1794686609398708335	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
-139	15385	1794686609397708352	CMakeFiles/HaloEngine.dir/Source/PluginEditor.cpp.o	b46713aeccec0f48
-137	16039	1794686609395708387	CMakeFiles/HaloEngine.dir/Source/PluginProcessor.cpp.o	20ce9ddaadfe28d8
+177466	197404	1794677637860920596	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_dsp/juce_dsp.cpp.o	61a53fa9dd40f5d4
+168773	198459	1794677629168006369	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_devices/juce_audio_devices.cpp.o	568ed6dfad57f9e1
+53777	192502	1794677514173132179	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o	b422ef965d6d5489
 16040	19283	1794686625300417648	HaloEngine_artefacts/libHalo Ambient Engine_SharedCode.a	91ac42dfbb699a3b
 19283	25346	1794686628542354712	HaloEngine_artefacts/Standalone/Halo Ambient Engine	8fa006891257aa1b
+8618	29978	1794677906062274255	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o	799cb58c64b34e85
 19285	25747	1794686628544354673	HaloEngine_artefacts/VST3/Halo Ambient Engine.vst3/Contents/x86_64-linux/Halo Ambient Engine.so	c83d87f5ed98402a
+128	9403	1794687810924474683	build.ninja	ff85d6303eabc726
+128	9403	1794687810915578184	/home/shauryaj/AudioDev/HaloEngine/build/cmake_install.cmake	ff85d6303eabc726
+128	9403	1794687810917578178	/home/shauryaj/AudioDev/HaloEngine/build/JUCE/cmake_install.cmake	ff85d6303eabc726
+128	9403	1794687810919255997	/home/shauryaj/AudioDev/HaloEngine/build/JUCE/modules/cmake_install.cmake	ff85d6303eabc726
+128	9403	1794687810920578168	/home/shauryaj/AudioDev/HaloEngine/build/JUCE/extras/Build/cmake_install.cmake	ff85d6303eabc726
+128	9403	1794687810922436279	/home/shauryaj/AudioDev/HaloEngine/build/JUCE/extras/Build/juceaide/cmake_install.cmake	ff85d6303eabc726
+138	3754	1794687810924474683	build.ninja	ff85d6303eabc726
+138	3754	1794687810924474683	/home/shauryaj/AudioDev/HaloEngine/build/cmake_install.cmake	ff85d6303eabc726
+138	3754	1794687810924474683	/home/shauryaj/AudioDev/HaloEngine/build/JUCE/cmake_install.cmake	ff85d6303eabc726
+138	3754	1794687810924474683	/home/shauryaj/AudioDev/HaloEngine/build/JUCE/modules/cmake_install.cmake	ff85d6303eabc726
+138	3754	1794687810924474683	/home/shauryaj/AudioDev/HaloEngine/build/JUCE/extras/Build/cmake_install.cmake	ff85d6303eabc726
+138	3754	1794687810924474683	/home/shauryaj/AudioDev/HaloEngine/build/JUCE/extras/Build/juceaide/cmake_install.cmake	ff85d6303eabc726
+5	104	1794687811032577813	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/cmake.verify_globs	17d07824487757f2
+120	135	1794687811160577407	HaloEngine_artefacts/JuceLibraryCode/JuceHeader.h	d748b935a4a5a24e
+120	135	1794687811160577407	/home/shauryaj/AudioDev/HaloEngine/build/HaloEngine_artefacts/JuceLibraryCode/JuceHeader.h	d748b935a4a5a24e
+120	16575	1794687811149367000	CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
+120	16575	1794687811149367000	/home/shauryaj/AudioDev/HaloEngine/build/CMakeFiles/HaloEngine_vst3_helper	dacb05660d16ca3c
+137	21943	1794687811164577395	CMakeFiles/HaloEngine.dir/Source/PluginEditor.cpp.o	3b7736e7329b4179
+143	32909	1794687811173577366	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_gui_extra/juce_gui_extra.cpp.o	8964bc6468d50688
+138	35134	1794687811166577388	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_processors/juce_audio_processors.cpp.o	ae20dc6979072252
+135	37764	1794687811164099216	CMakeFiles/HaloEngine.dir/Source/PluginProcessor.cpp.o	f0dc410a330c5eaf
+16581	42235	1794687827609525277	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_gui_basics/juce_gui_basics_2.cpp.o	63d2d78fdb48989e
+146	65934	1794687811175461014	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_gui_basics/juce_gui_basics.cpp.o	2db41622616d641f
+65934	68011	1794687876962368865	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_Sheenbidi.c.o	c73a4959cab0a472
+32912	71509	1794687843940473520	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_gui_basics/juce_gui_basics_4.cpp.o	b2728f8f59af5607
+68026	71572	1794687879054362235	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_libjpg_1.c.o	aa6b0aff6c4012dc
+71574	75123	1794687882602350991	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_libjpg_3.c.o	10a2f8da4cdce42b
+71521	75569	1794687882549351159	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_libjpg_2.c.o	54db44531e13f690
+35135	78998	1794687846164244532	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_gui_basics/juce_gui_basics_5.cpp.o	2629ac88c6d42b98
+75569	80434	1794687886597338330	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_libwebp_dec.c.o	dcef674c9cd8523e
+75130	80935	1794687886158339721	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_libpng.c.o	4dff8099c384ac98
+80935	84862	1794687891963321324	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_libwebp_dsp_dec_sse41.c.o	fc1feed0c8e17aa2
+80438	87111	1794687891466322899	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_libwebp_dsp_dec_avx2.c.o	844cc77db92f9ddc
+78999	87202	1794687890027327459	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_libwebp_dsp_dec.c.o	c6b0a4fb581143c3
+84863	87325	1794687895891308875	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_libwebp_dsp_enc.c.o	aa5120af2e4cd4ef
+87203	88669	1794687898232301456	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_libwebp_dsp_enc_sse41.c.o	41384825588427dc
+21946	89567	1794687832975508270	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_gui_basics/juce_gui_basics_3.cpp.o	e5a01e4d5634d8a0
+88669	89590	1794687899698296810	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_libwebp_sharpyuv.c.o	2c54e9af4ae78034
+87112	91182	1794687898141301744	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_libwebp_dsp_enc_avx2.c.o	dafa87d749f765b1
+89569	92244	1794687900597293960	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_libwebp_utils.c.o	5582862d39199285
+87338	94894	1794687898366301031	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_libwebp_enc.c.o	19417c1476729c81
+94895	95098	1794687905923277081	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_core/juce_core_CompilationTime.cpp.o	bc06322f80fed807
+95100	98771	1794687906128276431	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_core/juce_core_zlib.c.o	28b12e92f36176fd
+89590	108150	1794687900618293894	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_lunasvg.c.o	9436d7b24cf53e2b
+91182	114000	1794687902210288848	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_events/juce_events.cpp.o	c62619831f0bd266
+114008	114127	1794687925038216501	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_processors_headless/juce_audio_processors_headless_ara.cpp.o	39a20540faade714
+114130	114259	1794687925158216121	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_processors_headless/juce_audio_processors_headless_lv2_libs.cpp.o	1d23052ecf3ce1c
+98772	115659	1794687909800264794	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_data_structures/juce_data_structures.cpp.o	a1caffd59955d635
+92250	136814	1794687903279285461	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_core/juce_core.cpp.o	5db11c05d5f67470
+108159	151128	1794687919187235044	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_processors_headless/juce_audio_processors_headless.cpp.o	ef7baf7faca4a6da
+151129	153806	1794687962157098862	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_formats/juce_audio_formats_flac_1.c.o	78c4126820240b58
+114262	159471	1794687925290215703	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_basics/juce_audio_basics.cpp.o	d2de93aea0ac4cea
+153807	159713	1794687964835090375	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_formats/juce_audio_formats_flac_2.c.o	821c57170543b737
+159477	161364	1794687970506072402	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_formats/juce_audio_formats_ogg.c.o	91fdc8671b2fec3b
+161367	168227	1794687972396066412	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_formats/juce_audio_formats_opusfile.c.o	c61d1380c52402d4
+115665	170726	1794687926693211256	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_utils/juce_audio_utils.cpp.o	d61e6f96e6ae44aa
+37768	176047	1794687848796458130	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics.cpp.o	7cac057ad38b2420
+176047	176185	1794687987075031126	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o	82ce025d8670a5b0
+176186	176251	1794687987214030796	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o	b47c2f74ee0adec0
+176258	176324	1794687987286030625	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o	e838b6bf6415c47b
+176327	176411	1794687987355030461	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o	c90f6e68d60817ee
+159716	177955	1794687970744071648	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_formats/juce_audio_formats_opus.c.o	d9fbf5e02608e4ad
+177959	178117	1794687988987026589	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o	8d7013b948ef11e4
+178125	178255	1794687989153026195	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o	1836febe5c84ca83
+178258	178415	1794687989286025880	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o	1445cb1770837aaf
+178421	178516	1794687989452025486	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o	61ecc479c7edd9ac
+178520	178633	1794687989548025258	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o	b4cc4e6c12ef1248
+178633	178840	1794687989661024990	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o	74d2639eeb48ea03
+178849	179130	1794687989877024478	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o	bd7090b61904f4bf
+179133	179222	1794687990163023799	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o	2b896d7c8cd26d7a
+179224	179281	1794687990253023586	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o	823e81d24bf3cbcf
+179283	179327	1794687990314023441	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o	a805d8a05db77b14
+136822	181588	1794687947850144205	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp.o	bfecb2efe0c8cbc9
+42240	196346	1794687853269443954	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o	10d3abfe901776f
+170726	200594	1794687981755043748	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_dsp/juce_dsp.cpp.o	73778d4ff79bb7f8
+176414	201609	1794687987442030255	CMakeFiles/HaloEngine_Standalone.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o	410c51f757c15542
+168227	206505	1794687979257049674	CMakeFiles/HaloEngine.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_devices/juce_audio_devices.cpp.o	e225b0524699bf71
+206505	210358	1794688017532958861	HaloEngine_artefacts/libHalo Ambient Engine_SharedCode.a	91ac42dfbb699a3b
+179328	212708	1794687990356023341	CMakeFiles/HaloEngine_VST3.dir/home/shauryaj/AudioDev/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o	d1ba0e1551eebe5c
+210360	215212	1794688021387949715	HaloEngine_artefacts/Standalone/Halo Ambient Engine	a8d2635ccab6b397
+212708	217529	1794688023735944144	HaloEngine_artefacts/VST3/Halo Ambient Engine.vst3/Contents/x86_64-linux/Halo Ambient Engine.so	b548ece548f63ad1
