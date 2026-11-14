@@ -1,7 +1,10 @@
 #pragma once
 #include <JuceHeader.h>
+#include <array>
+#include <vector>
+#include <atomic>
 
-class HaloEngineAudioProcessor  : public juce::AudioProcessor
+class HaloEngineAudioProcessor : public juce::AudioProcessor
 {
 public:
     HaloEngineAudioProcessor();
@@ -30,6 +33,52 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    juce::AudioProcessorValueTreeState apvts;
+    static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+
+    // Thread-safe UI telemetry & key detection atomics
+    std::atomic<int>   suggestedKeyIndex { -1 };
+    std::atomic<float> outLevelL { 0.0f };
+    std::atomic<float> outLevelR { 0.0f };
+    std::atomic<float> duckMeter { 0.0f };
+
 private:
+    void updateDroneFrequencies (int keyIndex, bool snapImmediately);
+    void analyzeIncomingPitch();
+
+    double currentSampleRate = 44100.0;
+    int lastKeyIndex = -1;
+
+    // 6-Voice Harmonic Drone Engine (Sub, Root, 5th, Oct, 9th, High 5th)
+    static constexpr int numVoices = 6;
+    std::array<juce::dsp::Oscillator<float>, numVoices> warmOscs;
+    std::array<juce::dsp::Oscillator<float>, numVoices> choirOscs;
+    std::array<juce::SmoothedValue<float, juce::ValueSmoothingTypes::Multiplicative>, numVoices> voiceFreqSmoothed;
+
+    juce::dsp::StateVariableTPTFilter<float> droneFilterL, droneFilterR;
+    juce::SmoothedValue<float> droneGainSmoothed;
+    juce::SmoothedValue<float> prayerMacroSmoothed;
+    juce::SmoothedValue<float> morphXSmoothed;
+    juce::SmoothedValue<float> morphYSmoothed;
+
+    // Shimmer & Lush Stereo Ambience Engine
+    juce::Reverb stereoReverb;
+    juce::Reverb::Parameters reverbParams;
+    juce::dsp::StateVariableTPTFilter<float> shimmerFilterL, shimmerFilterR;
+
+    // Granular Dual-Head Octave-Up Shimmer Buffer
+    std::vector<float> pitchBufferL, pitchBufferR;
+    int pitchWriteIdx = 0;
+    float pitchReadPhase = 0.0f;
+
+    // Reactive Auto-Ducking Envelope Follower
+    float inputEnvelope = 0.0f;
+
+    // Non-Intrusive Autocorrelation Pitch / Key Detector
+    std::vector<float> detectBuffer;
+    int detectWritePos = 0;
+    int candidateKey = -1;
+    int candidateConfirmCount = 0;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HaloEngineAudioProcessor)
 };
