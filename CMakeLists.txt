@@ -30,6 +30,9 @@ target_sources(HaloEngine
         Source/PluginEditor.cpp
         Source/PluginEditor.h
         Source/DSP/SupermassiveTank.h
+        Source/DSP/WavetableOsc.h
+        Source/DSP/ModFilterEngine.h
+        Source/DSP/PresetBank.h
 )
 
 target_compile_definitions(HaloEngine
