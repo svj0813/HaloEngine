@@ -4,9 +4,6 @@
 #include "DSP/PresetBank.h"
 #include <array>
 
-// ==============================================================================
-// CUSTOM STUDIO DARK / NORDIC HARDWARE LOOKANDFEEL
-// ==============================================================================
 class HaloLookAndFeel : public juce::LookAndFeel_V4
 {
 public:
@@ -32,10 +29,10 @@ public:
                            float sliderPosProportional, float rotaryStartAngle,
                            float rotaryEndAngle, juce::Slider& slider) override
     {
-        auto bounds = juce::Rectangle<int> (x, y, width, height).toFloat().reduced (4.0f);
+        auto bounds = juce::Rectangle<int> (x, y, width, height).toFloat().reduced (3.0f);
         auto radius = juce::jmin (bounds.getWidth(), bounds.getHeight()) * 0.5f;
         auto toAngle = rotaryStartAngle + sliderPosProportional * (rotaryEndAngle - rotaryStartAngle);
-        auto lineW = juce::jmax (2.2f, radius * 0.11f);
+        auto lineW = juce::jmax (2.0f, radius * 0.12f);
         auto arcRadius = radius - lineW * 0.6f;
 
         auto accent = slider.findColour (juce::Slider::rotarySliderFillColourId);
@@ -57,8 +54,8 @@ public:
             g.strokePath (valueArc, juce::PathStrokeType (lineW, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
         }
 
-        auto knobRadius = arcRadius - lineW * 1.4f;
-        if (knobRadius > 4.0f)
+        auto knobRadius = arcRadius - lineW * 1.3f;
+        if (knobRadius > 3.0f)
         {
             juce::ColourGradient grad (juce::Colour (0xff1E2636), bounds.getCentreX(), bounds.getCentreY() - knobRadius,
                                        juce::Colour (0xff10151F), bounds.getCentreX(), bounds.getCentreY() + knobRadius, false);
@@ -71,7 +68,7 @@ public:
             juce::Point<float> thumbPoint (bounds.getCentreX() + (knobRadius * 0.72f) * std::cos (toAngle - juce::MathConstants<float>::halfPi),
                                            bounds.getCentreY() + (knobRadius * 0.72f) * std::sin (toAngle - juce::MathConstants<float>::halfPi));
             g.setColour (accent);
-            g.drawLine (bounds.getCentreX(), bounds.getCentreY(), thumbPoint.x, thumbPoint.y, 2.0f);
+            g.drawLine (bounds.getCentreX(), bounds.getCentreY(), thumbPoint.x, thumbPoint.y, 1.8f);
         }
     }
 
@@ -82,30 +79,27 @@ public:
         auto accent = slider.findColour (juce::Slider::thumbColourId);
         if (style == juce::Slider::LinearVertical)
         {
-            float trackW = 6.0f;
+            float trackW = 5.0f;
             float cx = x + width * 0.5f;
             g.setColour (juce::Colour (0xff171E2B));
-            g.fillRoundedRectangle (cx - trackW * 0.5f, static_cast<float> (y), trackW, static_cast<float> (height), 3.0f);
+            g.fillRoundedRectangle (cx - trackW * 0.5f, static_cast<float> (y), trackW, static_cast<float> (height), 2.5f);
 
             float fillTop = sliderPos;
             float fillH = (y + height) - fillTop;
             if (fillH > 0.0f)
             {
                 g.setColour (accent.withAlpha (0.85f));
-                g.fillRoundedRectangle (cx - trackW * 0.5f, fillTop, trackW, fillH, 3.0f);
+                g.fillRoundedRectangle (cx - trackW * 0.5f, fillTop, trackW, fillH, 2.5f);
             }
 
             g.setColour (juce::Colour (0xffE2E8F0));
-            g.fillRoundedRectangle (cx - 10.0f, sliderPos - 4.0f, 20.0f, 8.0f, 3.0f);
+            g.fillRoundedRectangle (cx - 9.0f, sliderPos - 3.5f, 18.0f, 7.0f, 2.5f);
             g.setColour (accent);
-            g.drawRoundedRectangle (cx - 10.0f, sliderPos - 4.0f, 20.0f, 8.0f, 3.0f, 1.2f);
+            g.drawRoundedRectangle (cx - 9.0f, sliderPos - 3.5f, 18.0f, 7.0f, 2.5f, 1.1f);
         }
     }
 };
 
-// ==============================================================================
-// REAL-TIME SERUM/VITAL WAVETABLE DISPLAY COMPONENT
-// ==============================================================================
 class WavetablePreviewComponent : public juce::Component
 {
 public:
@@ -133,11 +127,9 @@ public:
         g.setColour (juce::Colour (0xff232D3F));
         g.drawRoundedRectangle (b, 6.0f, 1.0f);
 
-        // Center zero line
         g.setColour (juce::Colour (0xff1A2232));
         g.drawHorizontalLine (static_cast<int> (b.getCentreY()), b.getX() + 4.0f, b.getRight() - 4.0f);
 
-        // Draw subtle background ghost frames (3D wavetable stack look)
         for (int layer = 2; layer >= 1; --layer)
         {
             float ghostPos = juce::jlimit (0.0f, 1.0f, wtPos + layer * 0.08f);
@@ -147,8 +139,8 @@ public:
             {
                 float normX = static_cast<float> (i) / static_cast<float> (pts - 1);
                 float sample = bank.getPreviewSample (tableIdx, ghostPos, normX);
-                float px = b.getX() + 6.0f + normX * (b.getWidth() - 12.0f);
-                float py = b.getCentreY() - sample * (b.getHeight() * 0.34f) - layer * 3.0f;
+                float px = b.getX() + 5.0f + normX * (b.getWidth() - 10.0f);
+                float py = b.getCentreY() - sample * (b.getHeight() * 0.34f) - layer * 2.5f;
                 if (i == 0) ghostPath.startNewSubPath (px, py);
                 else ghostPath.lineTo (px, py);
             }
@@ -156,7 +148,6 @@ public:
             g.strokePath (ghostPath, juce::PathStrokeType (1.0f));
         }
 
-        // Draw active morphed waveform
         juce::Path wavePath;
         const int steps = 96;
         for (int i = 0; i < steps; ++i)
@@ -175,16 +166,16 @@ public:
             }
 
             float sample = bank.getPreviewSample (tableIdx, wtPos, static_cast<float> (warpedP));
-            float px = b.getX() + 6.0f + static_cast<float> (p) * (b.getWidth() - 12.0f);
+            float px = b.getX() + 5.0f + static_cast<float> (p) * (b.getWidth() - 10.0f);
             float py = b.getCentreY() - sample * (b.getHeight() * 0.38f);
             if (i == 0) wavePath.startNewSubPath (px, py);
             else wavePath.lineTo (px, py);
         }
 
         g.setColour (accent.withAlpha (0.28f));
-        g.strokePath (wavePath, juce::PathStrokeType (4.0f));
+        g.strokePath (wavePath, juce::PathStrokeType (3.5f));
         g.setColour (accent);
-        g.strokePath (wavePath, juce::PathStrokeType (1.8f));
+        g.strokePath (wavePath, juce::PathStrokeType (1.6f));
     }
 
 private:
@@ -196,9 +187,6 @@ private:
     int warpMode = 0;
 };
 
-// ==============================================================================
-// INTERACTIVE 2D MORPH PAD (X = TEXTURE / WT SCAN, Y = BRIGHTNESS / CUTOFF)
-// ==============================================================================
 class MorphPadComponent : public juce::Component
 {
 public:
@@ -211,10 +199,10 @@ public:
         juce::ColourGradient bg (juce::Colour (0xff121824), b.getTopLeft(),
                                  juce::Colour (0xff0B0F17), b.getBottomRight(), false);
         g.setGradientFill (bg);
-        g.fillRoundedRectangle (b, 10.0f);
+        g.fillRoundedRectangle (b, 8.0f);
 
         g.setColour (juce::Colour (0xff232D3F));
-        g.drawRoundedRectangle (b, 10.0f, 1.2f);
+        g.drawRoundedRectangle (b, 8.0f, 1.1f);
 
         g.setColour (juce::Colour (0xff1B2332));
         for (int i = 1; i < 4; ++i)
@@ -225,12 +213,12 @@ public:
             g.drawHorizontalLine (static_cast<int> (gy), b.getX() + 6.0f, b.getRight() - 6.0f);
         }
 
-        g.setFont (juce::Font (10.5f, juce::Font::bold));
+        g.setFont (juce::FontOptions (10.0f, juce::Font::bold));
         g.setColour (juce::Colour (0xff64748B));
-        g.drawText ("AIRY / CHIME", b.reduced (10.0f), juce::Justification::topRight);
-        g.drawText ("WARM / FELT",  b.reduced (10.0f), juce::Justification::bottomLeft);
-        g.drawText ("BRIGHT",       b.reduced (10.0f), juce::Justification::topLeft);
-        g.drawText ("SHIMMER",      b.reduced (10.0f), juce::Justification::bottomRight);
+        g.drawText ("CRYSTAL / CHIME", b.reduced (10.0f), juce::Justification::topRight);
+        g.drawText ("SILK / WARM",     b.reduced (10.0f), juce::Justification::bottomLeft);
+        g.drawText ("BRIGHT",          b.reduced (10.0f), juce::Justification::topLeft);
+        g.drawText ("HALO SHIMMER",    b.reduced (10.0f), juce::Justification::bottomRight);
 
         float mx = *apvts.getRawParameterValue ("MORPH_X");
         float my = *apvts.getRawParameterValue ("MORPH_Y");
@@ -239,11 +227,11 @@ public:
         float py = b.getBottom() - 14.0f - my * (b.getHeight() - 28.0f);
 
         g.setColour (juce::Colour (0xff4FD1C5).withAlpha (0.18f));
-        g.fillEllipse (px - 22.0f, py - 22.0f, 44.0f, 44.0f);
+        g.fillEllipse (px - 20.0f, py - 20.0f, 40.0f, 40.0f);
         g.setColour (juce::Colour (0xff4FD1C5).withAlpha (0.45f));
-        g.drawEllipse (px - 13.0f, py - 13.0f, 26.0f, 26.0f, 1.5f);
+        g.drawEllipse (px - 12.0f, py - 12.0f, 24.0f, 24.0f, 1.4f);
         g.setColour (juce::Colour (0xff4FD1C5));
-        g.fillEllipse (px - 6.0f, py - 6.0f, 12.0f, 12.0f);
+        g.fillEllipse (px - 5.5f, py - 5.5f, 11.0f, 11.0f);
     }
 
     void mouseDown (const juce::MouseEvent& e) override { updateFromMouse (e); }
@@ -267,9 +255,6 @@ private:
     juce::AudioProcessorValueTreeState& apvts;
 };
 
-// ==============================================================================
-// MAIN HALO ENGINE EDITOR (STAGE + SERUM/VITAL/SUPERMASSIVE SYNTH WORKSTATION)
-// ==============================================================================
 class PluginEditor : public juce::AudioProcessorEditor,
                      private juce::Timer
 {
@@ -291,38 +276,32 @@ private:
     int currentTab = 0;
     int currentPresetIdx = 0;
 
-    // Header Navigation, Preset Browser & Meters
+    // Header & Always-Visible Global Root Key + Octave Bar
     juce::TextButton stageTabButton { "STAGE" };
     juce::TextButton synthTabButton { "SYNTH ENGINE" };
     juce::TextButton prevPresetButton { "<" };
     juce::TextButton nextPresetButton { ">" };
     juce::ComboBox   presetSelector;
-    juce::TextButton keyAssistToggle { "KEY ASSIST: ON" };
-    juce::TextButton applyKeyButton  { "APPLY KEY" };
-    int detectedKeyCache = -1;
 
-    // ==========================================================================
-    // TAB 0: STAGE VIEW COMPONENTS
-    // ==========================================================================
-    std::array<juce::TextButton, 12> keyButtons;
-    juce::TextButton dronePowerButton { "DRONE ACTIVE" };
-    juce::TextButton prayerMacroButton { "PRAYER / SWELL" };
+    std::array<juce::TextButton, 12> globalKeyButtons;
+    std::array<juce::TextButton, 3>  octaveButtons;
+    juce::TextButton dronePowerButton  { "DRONE: ON" };
+    juce::TextButton prayerMacroButton { "SWELL" };
 
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> dronePowerAtt, prayerMacroAtt;
+
+    // TAB 0: STAGE VIEW
     MorphPadComponent morphPad;
 
-    juce::Slider droneLevelSlider, shimmerSlider, decaySlider, autoDuckSlider, mixSlider;
+    juce::Slider droneLevelSlider, shimmerSlider, decaySlider, mixSlider;
     juce::Slider spaceWarpSlider, spaceModSlider, spaceDampSlider;
-    juce::Label  droneLevelLabel, shimmerLabel, decayLabel, autoDuckLabel, mixLabel;
+    juce::Label  droneLevelLabel, shimmerLabel, decayLabel, mixLabel;
     juce::Label  spaceWarpLabel, spaceModLabel, spaceDampLabel;
 
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> droneLevelAtt, shimmerAtt, decayAtt, autoDuckAtt, mixAtt;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> droneLevelAtt, shimmerAtt, decayAtt, mixAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> spaceWarpAtt, spaceModAtt, spaceDampAtt;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> dronePowerAtt, prayerMacroAtt, keyAssistAtt;
 
-    // ==========================================================================
-    // TAB 1: SERUM / VITAL / SUPERMASSIVE SYNTH ENGINE COMPONENTS
-    // ==========================================================================
-    // OSC A & OSC B Wavetable Visualizers + Controls
+    // TAB 1: SYNTH ENGINE
     WavetablePreviewComponent oscAPreview;
     WavetablePreviewComponent oscBPreview;
 
@@ -338,7 +317,6 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>   oscAPosAtt, oscAWarpAtt, oscALevelAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>   oscBPosAtt, oscBOctAtt, oscBLevelAtt, airNoiseAtt;
 
-    // ZDF Multi-Mode Filter + LFO 1 & LFO 2 + ENV 2
     juce::ComboBox filterModeBox, lfo1ShapeBox, lfo2ShapeBox;
     juce::Slider   filterResSlider, filterEnvSlider, driveSlider;
     juce::Slider   lfo1RateSlider, lfo1WtSlider, lfo2RateSlider, lfo2CutSlider;
@@ -349,7 +327,6 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>   filterResAtt, filterEnvAtt, driveAtt;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>   lfo1RateAtt, lfo1WtAtt, lfo2RateAtt, lfo2CutAtt;
 
-    // 6-Voice Harmonic Drone Mixer Faders + Unison/Glide/ADSR
     std::array<juce::Slider, 6> voiceFaders;
     std::array<juce::Label, 6>  voiceLabels;
     std::array<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>, 6> voiceAtts;
@@ -358,7 +335,6 @@ private:
     juce::Label  detuneLabel, widthLabel, glideLabel, attackLabel, releaseLabel;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> detuneAtt, widthAtt, glideAtt, attackAtt, releaseAtt;
 
-    // Playable 2-Octave Keyboard
     juce::MidiKeyboardComponent midiKeyboard;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginEditor)
