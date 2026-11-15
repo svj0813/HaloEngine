@@ -196,7 +196,8 @@ bool HaloEngineAudioProcessor::isBusesLayoutSupported (const BusesLayout& layout
 void HaloEngineAudioProcessor::updateDroneFrequencies (int keyIndex, bool snapImmediately)
 {
     int octShift = static_cast<int> (*apvts.getRawParameterValue ("DRONE_OCTAVE"));
-    double rootMidi = 48.0 + static_cast<double> (octShift * 12 + keyIndex);
+    static constexpr double baseRoots[3] { 36.0, 48.0, 60.0 }; // C2 (LOW), C3 (MID), C4 (HIGH)
+    double rootMidi = baseRoots[juce::jlimit (0, 2, octShift)] + static_cast<double> (keyIndex);
     float rootHz = static_cast<float> (440.0 * std::pow (2.0, (rootMidi - 69.0) / 12.0));
 
     std::array<float, numVoices> targetFreqs {
@@ -390,10 +391,17 @@ void HaloEngineAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     float attackSec   = *apvts.getRawParameterValue ("SYNTH_ATTACK");
     float releaseSec  = *apvts.getRawParameterValue ("SYNTH_RELEASE");
 
-    if (std::abs (glideSec - lastGlideSec) > 0.01f)
+    if (std::abs (glideSec - lastGlideSec) > 0.015f)
     {
+        static constexpr std::array<float, numVoices> voiceGlideScale { 0.85f, 1.00f, 1.15f, 1.28f, 1.40f, 1.52f };
         for (size_t i = 0; i < numVoices; ++i)
-            voiceFreqSmoothed[i].reset (currentSampleRate, glideSec);
+        {
+            float curVal = voiceFreqSmoothed[i].getCurrentValue();
+            float tgtVal = voiceFreqSmoothed[i].getTargetValue();
+            voiceFreqSmoothed[i].reset (currentSampleRate, juce::jmax (0.04f, glideSec * voiceGlideScale[i]));
+            voiceFreqSmoothed[i].setCurrentAndTargetValue (curVal);
+            voiceFreqSmoothed[i].setTargetValue (tgtVal);
+        }
         lastGlideSec = glideSec;
     }
 
@@ -463,8 +471,8 @@ void HaloEngineAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
         float lfo1Val = lfo1.process (lfo1Rate, lfo1Shape);
         float lfo2Val = lfo2.process (lfo2Rate, lfo2Shape);
 
-        float effPosA = juce::jlimit (0.0f, 1.0f, oscAPosBase * 0.5f + curX * 0.5f + lfo1Val * lfo1WtAmt * 0.42f);
-        float effPosB = juce::jlimit (0.0f, 1.0f, oscBPosBase * 0.5f + curX * 0.5f - lfo1Val * lfo1WtAmt * 0.35f);
+        float effPosA = juce::jlimit (0.0f, 1.0f, oscAPosBase * 0.78f + (curX - 0.5f) * 0.44f + lfo1Val * lfo1WtAmt * 0.42f);
+        float effPosB = juce::jlimit (0.0f, 1.0f, oscBPosBase * 0.78f + (curX - 0.5f) * 0.44f - lfo1Val * lfo1WtAmt * 0.35f);
         float weightA = oscALevel * (1.15f - curX * 0.45f);
         float weightB = oscBLevel * (0.55f + curX * 0.65f);
 
@@ -480,7 +488,10 @@ void HaloEngineAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
             activeEnergy += dGain * 0.65f;
             for (size_t v = 0; v < numVoices; ++v)
             {
-                float baseFreq = voiceFreqSmoothed[v].getNextValue();
+                float rawFreq  = voiceFreqSmoothed[v].getNextValue();
+                float voiceDrift = std::sin (static_cast<float> (droneSubPhases[v]) * 0.031f + static_cast<float> (v) * 1.17f
+                                             + lfo1Val * 0.85f) * (0.0018f + detuneAmt * 0.0025f);
+                float baseFreq = rawFreq * (1.0f + voiceDrift);
                 float weight = voiceWeights[v] * (v == 0 ? (1.0f + 0.45f * prayerVal) : 1.0f);
                 if (weight < 0.001f)
                     continue;
