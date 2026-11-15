@@ -56,7 +56,7 @@ PluginEditor::PluginEditor (HaloEngineAudioProcessor& p)
         addAndMakeVisible (btn);
     }
 
-    const std::array<juce::String, 3> octLabels { "MID", "HIGH", "SHIMMER+" };
+    const std::array<juce::String, 3> octLabels { "LOW", "MID", "HIGH" };
     for (int o = 0; o < 3; ++o)
     {
         auto& obtn = octaveButtons[static_cast<size_t> (o)];
