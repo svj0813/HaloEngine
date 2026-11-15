@@ -41,15 +41,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout HaloEngineAudioProcessor::cr
 
     juce::StringArray keys { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
     params.push_back (std::make_unique<juce::AudioParameterChoice> ("DRONE_KEY", "Drone Key", keys, 0));
+    params.push_back (std::make_unique<juce::AudioParameterInt>    ("DRONE_OCTAVE", "Drone Octave", 0, 2, 1));
     params.push_back (std::make_unique<juce::AudioParameterBool>   ("DRONE_ON", "Drone Active", true));
     params.push_back (std::make_unique<juce::AudioParameterFloat>  ("DRONE_LEVEL", "Drone Level", 0.0f, 1.0f, 0.72f));
 
     params.push_back (std::make_unique<juce::AudioParameterFloat>  ("MORPH_X", "Texture Morph X", 0.0f, 1.0f, 0.42f));
-    params.push_back (std::make_unique<juce::AudioParameterFloat>  ("MORPH_Y", "Brightness Morph Y", 0.0f, 1.0f, 0.52f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat>  ("MORPH_Y", "Brightness Morph Y", 0.0f, 1.0f, 0.74f));
 
-    params.push_back (std::make_unique<juce::AudioParameterFloat>  ("SHIMMER_AMT", "Shimmer Octave", 0.0f, 1.0f, 0.48f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat>  ("SHIMMER_AMT", "Shimmer Octave", 0.0f, 1.0f, 0.72f));
     params.push_back (std::make_unique<juce::AudioParameterFloat>  ("AMBIENCE_DECAY", "Space Decay", 0.0f, 1.0f, 0.86f));
-    params.push_back (std::make_unique<juce::AudioParameterFloat>  ("AUTO_DUCK", "Band Auto-Duck", 0.0f, 1.0f, 0.40f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat>  ("AUTO_DUCK", "Band Auto-Duck", 0.0f, 1.0f, 0.0f));
     params.push_back (std::make_unique<juce::AudioParameterFloat>  ("AMBIENCE_MIX", "Ambience Mix", 0.0f, 1.0f, 0.58f));
 
     params.push_back (std::make_unique<juce::AudioParameterBool>   ("PRAYER_MACRO", "Prayer / Transition", false));
@@ -58,13 +59,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout HaloEngineAudioProcessor::cr
     // Phase 1: Supermassive FDN Space Parameters
     params.push_back (std::make_unique<juce::AudioParameterFloat>  ("SPACE_WARP", "Cloud Warp", 0.0f, 1.0f, 0.74f));
     params.push_back (std::make_unique<juce::AudioParameterFloat>  ("SPACE_MOD",  "Tank Mod",   0.0f, 1.0f, 0.55f));
-    params.push_back (std::make_unique<juce::AudioParameterFloat>  ("SPACE_DAMP", "Air Damp",   0.0f, 1.0f, 0.42f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat>  ("SPACE_DAMP", "Air Damp",   0.0f, 1.0f, 0.22f));
 
     // Phase 2: Serum/Vital Dual Wavetable + Warp + Organic Air
     juce::StringArray wtNames { "ANALOG SAW-TRI", "VOCAL CHOIR", "GLASS BELL", "PWM ENSEMBLE", "BOWED STRINGS" };
     juce::StringArray warpModes { "OFF", "PHASE BEND", "HARD SYNC", "FM (B -> A)" };
 
-    params.push_back (std::make_unique<juce::AudioParameterChoice> ("OSC_A_TABLE", "Osc A Table", wtNames, 0));
+    params.push_back (std::make_unique<juce::AudioParameterChoice> ("OSC_A_TABLE", "Osc A Table", wtNames, 2));
     params.push_back (std::make_unique<juce::AudioParameterFloat>  ("OSC_A_POS",   "Osc A Position", 0.0f, 1.0f, 0.45f));
     params.push_back (std::make_unique<juce::AudioParameterChoice> ("OSC_A_WARP_MODE", "Osc A Warp Mode", warpModes, 1));
     params.push_back (std::make_unique<juce::AudioParameterFloat>  ("OSC_A_WARP",  "Osc A Warp",  0.0f, 1.0f, 0.22f));
@@ -73,7 +74,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout HaloEngineAudioProcessor::cr
     params.push_back (std::make_unique<juce::AudioParameterChoice> ("OSC_B_TABLE", "Osc B Table", wtNames, 1));
     params.push_back (std::make_unique<juce::AudioParameterFloat>  ("OSC_B_POS",   "Osc B Position", 0.0f, 1.0f, 0.55f));
     params.push_back (std::make_unique<juce::AudioParameterInt>    ("OSC_B_OCT",   "Osc B Octave", -1, 2, 1));
-    params.push_back (std::make_unique<juce::AudioParameterFloat>  ("OSC_B_LEVEL", "Osc B Level", 0.0f, 1.0f, 0.58f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat>  ("OSC_B_LEVEL", "Osc B Level", 0.0f, 1.0f, 0.76f));
 
     params.push_back (std::make_unique<juce::AudioParameterFloat>  ("AIR_NOISE",   "Organic Air", 0.0f, 1.0f, 0.24f));
 
@@ -157,8 +158,8 @@ void HaloEngineAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     dcBlockR.prepare (spec);
     dcBlockL.setType (juce::dsp::StateVariableTPTFilterType::highpass);
     dcBlockR.setType (juce::dsp::StateVariableTPTFilterType::highpass);
-    dcBlockL.setCutoffFrequency (32.0f);
-    dcBlockR.setCutoffFrequency (32.0f);
+    dcBlockL.setCutoffFrequency (155.0f);
+    dcBlockR.setCutoffFrequency (155.0f);
 
     int chorusSize = static_cast<int> (sampleRate * 0.05) + 16;
     chorusBufL.assign (static_cast<size_t> (chorusSize), 0.0f);
@@ -194,7 +195,8 @@ bool HaloEngineAudioProcessor::isBusesLayoutSupported (const BusesLayout& layout
 
 void HaloEngineAudioProcessor::updateDroneFrequencies (int keyIndex, bool snapImmediately)
 {
-    double rootMidi = 36.0 + static_cast<double> (keyIndex);
+    int octShift = static_cast<int> (*apvts.getRawParameterValue ("DRONE_OCTAVE"));
+    double rootMidi = 48.0 + static_cast<double> (octShift * 12 + keyIndex);
     float rootHz = static_cast<float> (440.0 * std::pow (2.0, (rootMidi - 69.0) / 12.0));
 
     std::array<float, numVoices> targetFreqs {
@@ -372,12 +374,12 @@ void HaloEngineAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     float lfo2CutAmt   = *apvts.getRawParameterValue ("LFO2_CUT_AMT");
 
     std::array<float, numVoices> voiceWeights {
-        *apvts.getRawParameterValue ("VOICE_SUB")   * 0.50f,
-        *apvts.getRawParameterValue ("VOICE_ROOT")  * 0.46f,
-        *apvts.getRawParameterValue ("VOICE_FIFTH") * 0.35f,
-        *apvts.getRawParameterValue ("VOICE_OCT")   * 0.33f,
-        *apvts.getRawParameterValue ("VOICE_NINTH") * 0.26f,
-        *apvts.getRawParameterValue ("VOICE_HIGH")  * 0.21f
+        *apvts.getRawParameterValue ("VOICE_SUB")   * 0.16f,
+        *apvts.getRawParameterValue ("VOICE_ROOT")  * 0.36f,
+        *apvts.getRawParameterValue ("VOICE_FIFTH") * 0.40f,
+        *apvts.getRawParameterValue ("VOICE_OCT")   * 0.48f,
+        *apvts.getRawParameterValue ("VOICE_NINTH") * 0.44f,
+        *apvts.getRawParameterValue ("VOICE_HIGH")  * 0.42f
     };
 
     float detuneAmt   = *apvts.getRawParameterValue ("SYNTH_DETUNE");
@@ -395,10 +397,12 @@ void HaloEngineAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
         lastGlideSec = glideSec;
     }
 
-    if (keyIndex != lastKeyIndex)
+    int octIndex = static_cast<int> (*apvts.getRawParameterValue ("DRONE_OCTAVE"));
+    int combinedKeyState = keyIndex + octIndex * 12;
+    if (combinedKeyState != lastKeyIndex)
     {
         updateDroneFrequencies (keyIndex, false);
-        lastKeyIndex = keyIndex;
+        lastKeyIndex = combinedKeyState;
     }
 
     droneGainSmoothed.setTargetValue (droneActive ? droneLevel : 0.0f);
