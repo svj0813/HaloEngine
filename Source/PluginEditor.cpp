@@ -1,1056 +1,381 @@
-#include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include <cmath>
 
-// ==============================================================================
-// HALO LOOK AND FEEL (MILLED ANODIZED HARDWARE & STUDIO FADERS)
-// ==============================================================================
-HaloLookAndFeel::HaloLookAndFeel()
-{
-    setColour (juce::Slider::textBoxTextColourId,       juce::Colour (0xffe2e8f0));
-    setColour (juce::Slider::textBoxBackgroundColourId, juce::Colours::transparentBlack);
-    setColour (juce::Slider::textBoxOutlineColourId,    juce::Colours::transparentBlack);
-}
-
-juce::Label* HaloLookAndFeel::createSliderTextBox (juce::Slider& slider)
-{
-    auto* l = LookAndFeel_V4::createSliderTextBox (slider);
-    l->setFont (juce::FontOptions (10.0f, juce::Font::bold));
-    l->setJustificationType (juce::Justification::centred);
-    l->setColour (juce::Label::outlineColourId,    juce::Colours::transparentBlack);
-    l->setColour (juce::Label::backgroundColourId, juce::Colour (0xff0b0d12));
-    l->setColour (juce::Label::textColourId,       juce::Colour (0xffcbd5e1));
-    return l;
-}
-
-void HaloLookAndFeel::drawRotarySlider (juce::Graphics& g, int x, int y, int width, int height,
-                                        float sliderPos, float rotaryStartAngle,
-                                        float rotaryEndAngle, juce::Slider& slider)
-{
-    auto bounds = juce::Rectangle<int> (x, y, width, height).toFloat().reduced (3.0f);
-    float radius = juce::jmin (bounds.getWidth(), bounds.getHeight()) * 0.5f;
-    float cx = bounds.getCentreX();
-    float cy = bounds.getCentreY();
-    float angle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
-
-    auto accent = slider.findColour (juce::Slider::rotarySliderFillColourId);
-
-    const int numTicks = 15;
-    float tickRadius = radius - 1.0f;
-    for (int i = 0; i < numTicks; ++i)
-    {
-        float frac = static_cast<float> (i) / static_cast<float> (numTicks - 1);
-        float tAngle = rotaryStartAngle + frac * (rotaryEndAngle - rotaryStartAngle);
-        bool isLit = (frac <= sliderPos + 0.01f);
-        bool isEnd = (i == 0 || i == numTicks - 1 || i == numTicks / 2);
-
-        float dotSize = isEnd ? 2.2f : 1.4f;
-        float tx = cx + std::sin (tAngle) * tickRadius;
-        float ty = cy - std::cos (tAngle) * tickRadius;
-
-        g.setColour (isLit ? accent : juce::Colour (0xff323846));
-        g.fillEllipse (tx - dotSize * 0.5f, ty - dotSize * 0.5f, dotSize, dotSize);
-    }
-
-    float arcRadius = radius - 5.5f;
-    juce::Path bgArc;
-    bgArc.addCentredArc (cx, cy, arcRadius, arcRadius, 0.0f, rotaryStartAngle, rotaryEndAngle, true);
-    g.setColour (juce::Colour (0xff090b0f));
-    g.strokePath (bgArc, juce::PathStrokeType (2.4f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
-
-    if (sliderPos > 0.005f)
-    {
-        juce::Path valArc;
-        valArc.addCentredArc (cx, cy, arcRadius, arcRadius, 0.0f, rotaryStartAngle, angle, true);
-        g.setColour (accent);
-        g.strokePath (valArc, juce::PathStrokeType (2.4f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
-    }
-
-    float capRadius = radius * 0.72f;
-    for (int s = 4; s >= 1; --s)
-    {
-        float spread = static_cast<float> (s) * 1.1f;
-        g.setColour (juce::Colours::black.withAlpha (0.16f));
-        g.fillEllipse (cx - capRadius + spread * 0.6f, cy - capRadius + spread * 1.1f,
-                       capRadius * 2.0f, capRadius * 2.0f);
-    }
-
-    juce::ColourGradient skirtGrad (juce::Colour (0xff363c4a), cx - capRadius * 0.6f, cy - capRadius * 0.8f,
-                                    juce::Colour (0xff101319), cx + capRadius * 0.6f, cy + capRadius * 0.9f, false);
-    g.setGradientFill (skirtGrad);
-    g.fillEllipse (cx - capRadius, cy - capRadius, capRadius * 2.0f, capRadius * 2.0f);
-
-    float topRadius = capRadius * 0.84f;
-    juce::ColourGradient topGrad (juce::Colour (0xff181b23), cx - topRadius * 0.5f, cy - topRadius * 0.7f,
-                                  juce::Colour (0xff242935), cx + topRadius * 0.5f, cy + topRadius * 0.8f, false);
-    g.setGradientFill (topGrad);
-    g.fillEllipse (cx - topRadius, cy - topRadius, topRadius * 2.0f, topRadius * 2.0f);
-
-    juce::Path pointer;
-    float pLen = capRadius * 0.58f;
-    float pThick = 2.0f;
-    pointer.addRoundedRectangle (-pThick * 0.5f, -capRadius + 2.5f, pThick, pLen, 1.0f);
-    pointer.applyTransform (juce::AffineTransform::rotation (angle).translated (cx, cy));
-
-    g.setColour (juce::Colours::white.withAlpha (0.92f));
-    g.fillPath (pointer);
-}
-
-void HaloLookAndFeel::drawLinearSlider (juce::Graphics& g, int x, int y, int width, int height,
-                                        float sliderPos, float, float,
-                                        const juce::Slider::SliderStyle, juce::Slider& slider)
-{
-    auto bounds = juce::Rectangle<int> (x, y, width, height).toFloat();
-    auto accent = slider.findColour (juce::Slider::thumbColourId);
-
-    float trackW = 6.0f;
-    auto track = bounds.withSizeKeepingCentre (trackW, bounds.getHeight() - 8.0f);
-    g.setColour (juce::Colour (0xff090b10));
-    g.fillRoundedRectangle (track, 3.0f);
-
-    auto fillRect = track.withTop (sliderPos);
-    g.setColour (accent.withAlpha (0.65f));
-    g.fillRoundedRectangle (fillRect, 3.0f);
-
-    float capW = 24.0f;
-    float capH = 12.0f;
-    juce::Rectangle<float> cap (bounds.getCentreX() - capW * 0.5f, sliderPos - capH * 0.5f, capW, capH);
-
-    g.setColour (juce::Colours::black.withAlpha (0.7f));
-    g.fillRoundedRectangle (cap.translated (0.0f, 2.0f), 2.5f);
-
-    juce::ColourGradient capGrad (juce::Colour (0xff3a4150), cap.getX(), cap.getY(),
-                                  juce::Colour (0xff1a1e26), cap.getX(), cap.getBottom(), false);
-    g.setGradientFill (capGrad);
-    g.fillRoundedRectangle (cap, 2.5f);
-
-    g.setColour (accent);
-    g.fillRect (cap.getX() + 3.0f, cap.getCentreY() - 0.8f, cap.getWidth() - 6.0f, 1.6f);
-}
-
-void HaloLookAndFeel::drawButtonBackground (juce::Graphics& g, juce::Button& button,
-                                            const juce::Colour& backgroundColour,
-                                            bool shouldDrawButtonAsHighlighted,
-                                            bool shouldDrawButtonAsDown)
-{
-    auto bounds = button.getLocalBounds().toFloat().reduced (1.5f);
-    float corner = 4.0f;
-
-    bool isToggled = button.getToggleState();
-    auto baseCol = isToggled ? button.findColour (juce::TextButton::buttonOnColourId)
-                             : backgroundColour;
-
-    if (shouldDrawButtonAsDown)
-        baseCol = baseCol.darker (0.14f);
-    else if (shouldDrawButtonAsHighlighted)
-        baseCol = baseCol.brighter (0.07f);
-
-    g.setColour (juce::Colours::black.withAlpha (0.55f));
-    g.fillRoundedRectangle (bounds.translated (0.0f, 1.5f), corner);
-
-    juce::ColourGradient grad (baseCol.brighter (0.10f), bounds.getX(), bounds.getY(),
-                               baseCol.darker (0.18f),   bounds.getX(), bounds.getBottom(), false);
-    g.setGradientFill (grad);
-    g.fillRoundedRectangle (bounds, corner);
-
-    g.setColour (juce::Colours::white.withAlpha (isToggled ? 0.32f : 0.08f));
-    g.drawHorizontalLine (static_cast<int> (bounds.getY()), bounds.getX() + 3.0f, bounds.getRight() - 3.0f);
-}
-
-void HaloLookAndFeel::drawButtonText (juce::Graphics& g, juce::TextButton& button,
-                                      bool, bool)
-{
-    g.setFont (juce::FontOptions (10.5f, juce::Font::bold));
-    bool isToggled = button.getToggleState();
-    auto textCol = isToggled ? juce::Colours::white
-                             : button.findColour (juce::TextButton::textColourOffId);
-    g.setColour (textCol);
-    g.drawFittedText (button.getButtonText(), button.getLocalBounds().reduced (4, 1),
-                      juce::Justification::centred, 1);
-}
-
-// ==============================================================================
-// TOP PANORAMIC SPECTRUM & HARMONIC CURVE VISUALIZER
-// ==============================================================================
-PanoramicHarmonicDisplay::PanoramicHarmonicDisplay (HaloEngineAudioProcessor& proc)
-    : processor (proc)
-{
-}
-
-void PanoramicHarmonicDisplay::advanceAnimation (float dt)
-{
-    animPhase = std::fmod (animPhase + dt * 1.8f, juce::MathConstants<float>::twoPi);
-}
-
-void PanoramicHarmonicDisplay::paint (juce::Graphics& g)
-{
-    auto bounds = getLocalBounds().toFloat();
-
-    juce::ColourGradient screenBg (juce::Colour (0xff090b10), bounds.getCentreX(), bounds.getY(),
-                                   juce::Colour (0xff0e1118), bounds.getCentreX(), bounds.getBottom(), false);
-    g.setGradientFill (screenBg);
-    g.fillRoundedRectangle (bounds, 6.0f);
-
-    g.saveState();
-    g.reduceClipRegion (bounds.toNearestInt());
-
-    const char* freqLabels[6] = { "50", "120", "400", "1.2k", "4k", "10k" };
-    g.setFont (juce::FontOptions (9.5f, juce::Font::bold));
-    for (int i = 0; i < 6; ++i)
-    {
-        float x = bounds.getX() + bounds.getWidth() * (0.10f + i * 0.16f);
-        g.setColour (juce::Colours::white.withAlpha (0.035f));
-        g.drawVerticalLine (static_cast<int> (x), bounds.getY() + 20.0f, bounds.getBottom() - 4.0f);
-        g.setColour (juce::Colour (0xff475569));
-        g.drawText (freqLabels[i], static_cast<int> (x - 16), static_cast<int> (bounds.getY() + 6), 32, 12,
-                    juce::Justification::centred);
-    }
-
-    int   keyIndex   = static_cast<int> (*processor.apvts.getRawParameterValue ("DRONE_KEY"));
-    bool  droneOn    = *processor.apvts.getRawParameterValue ("DRONE_ON") > 0.5f;
-    float droneLvl   = droneOn ? processor.apvts.getRawParameterValue ("DRONE_LEVEL")->load() : 0.08f;
-    float morphX     = *processor.apvts.getRawParameterValue ("MORPH_X");
-    float morphY     = *processor.apvts.getRawParameterValue ("MORPH_Y");
-    float shimmerAmt = *processor.apvts.getRawParameterValue ("SHIMMER_AMT");
-    float decayAmt   = *processor.apvts.getRawParameterValue ("AMBIENCE_DECAY");
-    bool  prayerOn   = *processor.apvts.getRawParameterValue ("PRAYER_MACRO") > 0.5f;
-    float rms        = (processor.outLevelL.load (std::memory_order_relaxed)
-                      + processor.outLevelR.load (std::memory_order_relaxed)) * 0.5f;
-
-    float baseY = bounds.getBottom();
-    float h     = bounds.getHeight() - 24.0f;
-
-    g.setColour (juce::Colour (0xff38bdf8).withAlpha (0.14f));
-    for (int bar = 0; bar < 96; ++bar)
-    {
-        float t = static_cast<float> (bar) / 96.0f;
-        float bx = bounds.getX() + t * bounds.getWidth();
-        float harmonicSpike = std::abs (std::sin (t * 28.0f + keyIndex * 0.52f + animPhase * 0.6f))
-                            * std::abs (std::cos (t * 63.0f - animPhase * 1.1f));
-        float env = std::exp (-std::pow ((t - (0.35f + morphY * 0.35f)) * 2.4f, 2.0f));
-        float barH = (12.0f + rms * 160.0f + shimmerAmt * 38.0f) * harmonicSpike * (0.35f + env);
-        g.drawLine (bx, baseY, bx, baseY - juce::jmin (h * 0.85f, barH), 2.0f);
-    }
-
-    juce::Path subCurve;
-    subCurve.startNewSubPath (bounds.getX(), baseY);
-    float subCenter = 0.24f + (keyIndex / 12.0f) * 0.08f;
-    float subHeight = h * (0.35f + droneLvl * 0.52f + rms * 0.35f);
-
-    for (float x = bounds.getX(); x <= bounds.getRight(); x += 3.0f)
-    {
-        float t = (x - bounds.getX()) / bounds.getWidth();
-        float bell = std::exp (-std::pow ((t - subCenter) / 0.13f, 2.0f));
-        float ripple = 1.0f + 0.04f * std::sin (t * 18.0f + animPhase * 2.0f);
-        subCurve.lineTo (x, baseY - subHeight * bell * ripple);
-    }
-    subCurve.lineTo (bounds.getRight(), baseY);
-    subCurve.closeSubPath();
-
-    juce::ColourGradient subGrad (juce::Colour (0xff6366f1).withAlpha (0.72f), bounds.getX() + bounds.getWidth() * 0.15f, baseY - subHeight,
-                                  juce::Colour (0xfff97316).withAlpha (0.68f), bounds.getX() + bounds.getWidth() * 0.42f, baseY, false);
-    g.setGradientFill (subGrad);
-    g.fillPath (subCurve);
-
-    juce::Path shimmerCurve;
-    shimmerCurve.startNewSubPath (bounds.getX(), baseY);
-    float shimCenter = 0.44f + morphY * 0.22f;
-    float shimWidth  = 0.14f + decayAmt * 0.08f;
-    float shimHeight = h * (0.28f + shimmerAmt * 0.48f + morphX * 0.22f + rms * 0.30f);
-
-    for (float x = bounds.getX(); x <= bounds.getRight(); x += 3.0f)
-    {
-        float t = (x - bounds.getX()) / bounds.getWidth();
-        float bell = std::exp (-std::pow ((t - shimCenter) / shimWidth, 2.0f));
-        float ripple = 1.0f + 0.05f * std::cos (t * 22.0f - animPhase * 2.4f);
-        shimmerCurve.lineTo (x, baseY - shimHeight * bell * ripple);
-    }
-    shimmerCurve.lineTo (bounds.getRight(), baseY);
-    shimmerCurve.closeSubPath();
-
-    juce::Colour cStart = prayerOn ? juce::Colour (0xffa855f7) : juce::Colour (0xfffb7185);
-    juce::Colour cEnd   = juce::Colour (0xff38bdf8);
-    juce::ColourGradient shimGrad (cStart.withAlpha (0.65f), bounds.getX() + bounds.getWidth() * 0.36f, baseY - shimHeight,
-                                   cEnd.withAlpha (0.35f),   bounds.getX() + bounds.getWidth() * 0.72f, baseY, false);
-    g.setGradientFill (shimGrad);
-    g.fillPath (shimmerCurve);
-
-    const juce::StringArray keyNames { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
-    g.setColour (juce::Colours::white.withAlpha (0.22f));
-    g.setFont (juce::FontOptions (14.0f, juce::Font::bold));
-    g.drawText ("HALO ENGINE  ::  KEY OF " + keyNames[keyIndex],
-                bounds.withTrimmedTop (22.0f).withHeight (24.0f), juce::Justification::centred);
-
-    juce::ColourGradient topShadow (juce::Colours::black.withAlpha (0.75f), 0.0f, bounds.getY(),
-                                    juce::Colours::transparentBlack,       0.0f, bounds.getY() + 14.0f, false);
-    g.setGradientFill (topShadow);
-    g.fillRect (bounds.withHeight (14.0f));
-
-    g.restoreState();
-
-    g.setColour (juce::Colours::white.withAlpha (0.07f));
-    g.drawHorizontalLine (static_cast<int> (bounds.getBottom()), bounds.getX() + 4.0f, bounds.getRight() - 4.0f);
-}
-
-// ==============================================================================
-// REAL-TIME OSCILLOSCOPE MONITOR (SYNTH ENGINE TAB)
-// ==============================================================================
-SynthOscilloscope::SynthOscilloscope (HaloEngineAudioProcessor& proc)
-    : processor (proc)
-{
-}
-
-void SynthOscilloscope::paint (juce::Graphics& g)
-{
-    auto bounds = getLocalBounds().toFloat();
-
-    g.setColour (juce::Colour (0xff090b10));
-    g.fillRoundedRectangle (bounds, 6.0f);
-
-    g.setColour (juce::Colours::white.withAlpha (0.04f));
-    g.drawHorizontalLine (static_cast<int> (bounds.getCentreY()), bounds.getX() + 6.0f, bounds.getRight() - 6.0f);
-    for (int i = 1; i < 6; ++i)
-    {
-        float gx = bounds.getX() + (bounds.getWidth() * i) / 6.0f;
-        g.drawVerticalLine (static_cast<int> (gx), bounds.getY() + 6.0f, bounds.getBottom() - 6.0f);
-    }
-
-    juce::Path wave;
-    float midY = bounds.getCentreY();
-    float ampH = bounds.getHeight() * 0.42f;
-
-    for (int i = 0; i < HaloEngineAudioProcessor::scopeSize; ++i)
-    {
-        float t = static_cast<float> (i) / static_cast<float> (HaloEngineAudioProcessor::scopeSize - 1);
-        float wx = bounds.getX() + 6.0f + t * (bounds.getWidth() - 12.0f);
-        float sample = processor.scopeSamples[static_cast<size_t> (i)].load (std::memory_order_relaxed);
-        float wy = midY - sample * ampH;
-
-        if (i == 0)
-            wave.startNewSubPath (wx, wy);
-        else
-            wave.lineTo (wx, wy);
-    }
-
-    g.setColour (juce::Colour (0xff38bdf8).withAlpha (0.25f));
-    g.strokePath (wave, juce::PathStrokeType (5.0f));
-    g.setColour (juce::Colour (0xff38bdf8));
-    g.strokePath (wave, juce::PathStrokeType (1.8f));
-
-    g.setFont (juce::FontOptions (9.0f, juce::Font::bold));
-    g.setColour (juce::Colour (0xff64748b));
-    g.drawText ("HARMONIC WAVEFORM MONITOR", bounds.reduced (10.0f, 6.0f), juce::Justification::topLeft);
-}
-
-// ==============================================================================
-// VERTICAL CALIBRATED LED METER STRIP
-// ==============================================================================
-VerticalMeterStrip::VerticalMeterStrip (const juce::String& labelText, bool isGainReduction)
-    : title (labelText), duckMode (isGainReduction)
-{
-}
-
-void VerticalMeterStrip::setLevels (float newL, float newR)
-{
-    levelL += (juce::jlimit (0.0f, 1.0f, newL) - levelL) * 0.30f;
-    levelR += (juce::jlimit (0.0f, 1.0f, newR) - levelR) * 0.30f;
-}
-
-void VerticalMeterStrip::paint (juce::Graphics& g)
-{
-    auto bounds = getLocalBounds().toFloat();
-
-    g.setColour (juce::Colour (0xff0b0d12));
-    g.fillRoundedRectangle (bounds, 4.0f);
-
-    g.setColour (juce::Colours::white.withAlpha (0.05f));
-    g.drawHorizontalLine (static_cast<int> (bounds.getBottom()), bounds.getX() + 2.0f, bounds.getRight() - 2.0f);
-
-    auto labelArea = bounds.removeFromBottom (18.0f);
-    g.setFont (juce::FontOptions (8.5f, juce::Font::bold));
-    g.setColour (juce::Colour (0xff64748b));
-    g.drawText (title, labelArea, juce::Justification::centred);
-
-    auto trackArea = bounds.reduced (6.0f, 8.0f);
-    int segments = 22;
-    float gap = 2.0f;
-    float segH = (trackArea.getHeight() - gap * (segments - 1)) / static_cast<float> (segments);
-
-    auto drawColumn = [&] (juce::Rectangle<float> col, float val) {
-        for (int i = 0; i < segments; ++i)
-        {
-            float norm = static_cast<float> (i) / static_cast<float> (segments - 1);
-            float y = col.getBottom() - (i + 1) * segH - i * gap;
-            juce::Rectangle<float> seg (col.getX(), y, col.getWidth(), segH);
-
-            bool lit = (norm <= val && val > 0.01f);
-            juce::Colour segCol;
-            if (duckMode)
-                segCol = juce::Colour (0xfff59e0b);
-            else if (norm > 0.85f)
-                segCol = juce::Colour (0xfff43f5e);
-            else if (norm > 0.65f)
-                segCol = juce::Colour (0xfffacc15);
-            else
-                segCol = juce::Colour (0xff38bdf8);
-
-            g.setColour (lit ? segCol : juce::Colour (0xff151922));
-            g.fillRect (seg);
-        }
-    };
-
-    if (duckMode)
-    {
-        drawColumn (trackArea.reduced (1.5f, 0.0f), levelL);
-    }
-    else
-    {
-        float halfW = (trackArea.getWidth() - 2.0f) * 0.5f;
-        drawColumn (trackArea.withWidth (halfW), levelL);
-        drawColumn (trackArea.withTrimmedLeft (halfW + 2.0f), levelR);
-    }
-}
-
-// ==============================================================================
-// ANODIZED 1-OCTAVE HARDWARE PIANO KEYBED
-// ==============================================================================
-HardwareKeybed::HardwareKeybed (HaloEngineAudioProcessor& proc)
-    : processor (proc)
-{
-    setRepaintsOnMouseActivity (true);
-}
-
-juce::Rectangle<float> HardwareKeybed::getNaturalRect (int whiteIdx) const
-{
-    auto b = getLocalBounds().toFloat().reduced (3.0f, 3.0f);
-    float gap = 3.0f;
-    float w = (b.getWidth() - gap * 6.0f) / 7.0f;
-    return { b.getX() + whiteIdx * (w + gap), b.getY(), w, b.getHeight() };
-}
-
-juce::Rectangle<float> HardwareKeybed::getSharpRect (int sharpSlot) const
-{
-    static constexpr int leftWhite[5] = { 0, 1, 3, 4, 5 };
-    auto wLeft  = getNaturalRect (leftWhite[sharpSlot]);
-    auto wRight = getNaturalRect (leftWhite[sharpSlot] + 1);
-
-    float centerX = (wLeft.getRight() + wRight.getX()) * 0.5f;
-    float sharpW  = wLeft.getWidth() * 0.72f;
-    float sharpH  = wLeft.getHeight() * 0.56f;
-    return { centerX - sharpW * 0.5f, wLeft.getY() - 1.0f, sharpW, sharpH };
-}
-
-int HardwareKeybed::hitTestNote (juce::Point<float> pos) const
-{
-    static constexpr int sharpNotes[5]   = { 1, 3, 6, 8, 10 };
-    static constexpr int naturalNotes[7] = { 0, 2, 4, 5, 7, 9, 11 };
-
-    for (int s = 0; s < 5; ++s)
-        if (getSharpRect (s).expanded (2.0f).contains (pos))
-            return sharpNotes[s];
-
-    for (int w = 0; w < 7; ++w)
-        if (getNaturalRect (w).contains (pos))
-            return naturalNotes[w];
-
-    return -1;
-}
-
-void HardwareKeybed::mouseDown (const juce::MouseEvent& e)
-{
-    int note = hitTestNote (e.position);
-    if (note >= 0)
-    {
-        if (auto* keyParam = processor.apvts.getParameter ("DRONE_KEY"))
-        {
-            keyParam->beginChangeGesture();
-            keyParam->setValueNotifyingHost (keyParam->convertTo0to1 (static_cast<float> (note)));
-            keyParam->endChangeGesture();
-        }
-        repaint();
-    }
-}
-
-void HardwareKeybed::mouseDrag (const juce::MouseEvent& e) { mouseDown (e); }
-
-void HardwareKeybed::paint (juce::Graphics& g)
-{
-    auto bounds = getLocalBounds().toFloat();
-    g.setColour (juce::Colour (0xff0a0c10));
-    g.fillRoundedRectangle (bounds, 5.0f);
-
-    int activeKey = static_cast<int> (*processor.apvts.getRawParameterValue ("DRONE_KEY"));
-    static constexpr int naturalNotes[7] = { 0, 2, 4, 5, 7, 9, 11 };
-    static constexpr int sharpNotes[5]   = { 1, 3, 6, 8, 10 };
-
-    for (int w = 0; w < 7; ++w)
-    {
-        int note = naturalNotes[w];
-        bool isActive = (note == activeKey);
-        auto r = getNaturalRect (w);
-
-        g.setColour (juce::Colours::black.withAlpha (0.65f));
-        g.fillRoundedRectangle (r.translated (0.0f, 1.5f), 3.5f);
-
-        juce::Colour topCol = isActive ? juce::Colour (0xff2c3547) : juce::Colour (0xff232834);
-        juce::Colour botCol = isActive ? juce::Colour (0xff1d2432) : juce::Colour (0xff171a22);
-        juce::ColourGradient keyGrad (topCol, r.getX(), r.getY(), botCol, r.getX(), r.getBottom(), false);
-        g.setGradientFill (keyGrad);
-        g.fillRoundedRectangle (r, 3.5f);
-
-        g.setColour (juce::Colours::white.withAlpha (isActive ? 0.24f : 0.08f));
-        g.drawHorizontalLine (static_cast<int> (r.getY()), r.getX() + 2.0f, r.getRight() - 2.0f);
-
-        if (isActive)
-        {
-            auto ledBar = r.withTop (r.getBottom() - 4.5f).reduced (4.0f, 0.5f);
-            g.setColour (juce::Colour (0xff38bdf8).withAlpha (0.35f));
-            g.fillRoundedRectangle (ledBar.expanded (2.0f, 1.5f), 2.0f);
-            g.setColour (juce::Colour (0xff38bdf8));
-            g.fillRoundedRectangle (ledBar, 1.5f);
-        }
-
-        g.setFont (juce::FontOptions (10.5f, juce::Font::bold));
-        g.setColour (isActive ? juce::Colours::white : juce::Colour (0xff94a3b8));
-        g.drawText (noteNames[note], r.withTop (r.getBottom() - 26.0f).withHeight (18.0f),
-                    juce::Justification::centred);
-    }
-
-    for (int s = 0; s < 5; ++s)
-    {
-        int note = sharpNotes[s];
-        bool isActive = (note == activeKey);
-        auto r = getSharpRect (s);
-
-        g.setColour (juce::Colours::black.withAlpha (0.85f));
-        g.fillRoundedRectangle (r.translated (1.0f, 2.5f), 3.0f);
-
-        juce::Colour topCol = isActive ? juce::Colour (0xff1a2230) : juce::Colour (0xff11141b);
-        juce::Colour botCol = isActive ? juce::Colour (0xff101622) : juce::Colour (0xff090b0f);
-        juce::ColourGradient sharpGrad (topCol, r.getX(), r.getY(), botCol, r.getX(), r.getBottom(), false);
-        g.setGradientFill (sharpGrad);
-        g.fillRoundedRectangle (r, 3.0f);
-
-        g.setColour (juce::Colours::white.withAlpha (isActive ? 0.28f : 0.11f));
-        g.drawRoundedRectangle (r.reduced (0.5f), 3.0f, 0.8f);
-
-        if (isActive)
-        {
-            auto ledBar = r.withTop (r.getBottom() - 4.0f).reduced (3.5f, 0.5f);
-            g.setColour (juce::Colour (0xff38bdf8).withAlpha (0.4f));
-            g.fillRoundedRectangle (ledBar.expanded (1.5f), 1.5f);
-            g.setColour (juce::Colour (0xff38bdf8));
-            g.fillRoundedRectangle (ledBar, 1.0f);
-        }
-
-        g.setFont (juce::FontOptions (8.5f, juce::Font::bold));
-        g.setColour (isActive ? juce::Colour (0xff38bdf8) : juce::Colour (0xff64748b));
-        g.drawText (noteNames[note], r.withTop (r.getBottom() - 21.0f).withHeight (15.0f),
-                    juce::Justification::centred);
-    }
-}
-
-// ==============================================================================
-// MILLED HARDWARE TOGGLE SWITCH & OLED PITCH READOUT
-// ==============================================================================
-HardwareDroneSwitch::HardwareDroneSwitch (HaloEngineAudioProcessor& proc)
-    : processor (proc)
-{
-    setRepaintsOnMouseActivity (true);
-}
-
-void HardwareDroneSwitch::mouseDown (const juce::MouseEvent&)
-{
-    if (auto* param = processor.apvts.getParameter ("DRONE_ON"))
-    {
-        bool current = param->getValue() > 0.5f;
-        param->beginChangeGesture();
-        param->setValueNotifyingHost (current ? 0.0f : 1.0f);
-        param->endChangeGesture();
-        repaint();
-    }
-}
-
-void HardwareDroneSwitch::paint (juce::Graphics& g)
-{
-    auto bounds = getLocalBounds().toFloat();
-    bool isOn = *processor.apvts.getRawParameterValue ("DRONE_ON") > 0.5f;
-    int keyIdx = static_cast<int> (*processor.apvts.getRawParameterValue ("DRONE_KEY"));
-
-    auto oledBox = bounds.removeFromTop (24.0f);
-    g.setColour (juce::Colour (0xff090b10));
-    g.fillRoundedRectangle (oledBox, 4.0f);
-
-    double hz = 440.0 * std::pow (2.0, ((36.0 + keyIdx) - 69.0) / 12.0);
-    juce::String readout = noteNames[keyIdx] + "2 // " + juce::String (static_cast<int> (std::round (hz))) + "Hz";
-
-    g.setFont (juce::FontOptions (9.5f, juce::Font::bold));
-    g.setColour (isOn ? juce::Colour (0xfff97316) : juce::Colour (0xff475569));
-    g.drawText (readout, oledBox, juce::Justification::centred);
-
-    bounds.removeFromTop (6.0f);
-
-    auto switchHousing = bounds.reduced (10.0f, 2.0f);
-    g.setColour (juce::Colour (0xff090b0f));
-    g.fillRoundedRectangle (switchHousing, 5.0f);
-    g.setColour (juce::Colours::white.withAlpha (0.06f));
-    g.drawHorizontalLine (static_cast<int> (switchHousing.getBottom()),
-                          switchHousing.getX() + 2.0f, switchHousing.getRight() - 2.0f);
-
-    auto track = switchHousing.withSizeKeepingCentre (18.0f, switchHousing.getHeight() - 22.0f);
-    g.setColour (juce::Colour (0xff050608));
-    g.fillRoundedRectangle (track, 4.0f);
-
-    float ledY = switchHousing.getY() + 7.0f;
-    float cx   = switchHousing.getCentreX();
-    if (isOn)
-    {
-        g.setColour (juce::Colour (0xfff97316).withAlpha (0.4f));
-        g.fillEllipse (cx - 5.5f, ledY - 5.5f, 11.0f, 11.0f);
-        g.setColour (juce::Colour (0xfff97316));
-    }
-    else
-    {
-        g.setColour (juce::Colour (0xff272c38));
-    }
-    g.fillEllipse (cx - 2.5f, ledY - 2.5f, 5.0f, 5.0f);
-
-    float batH = track.getHeight() * 0.52f;
-    auto batRect = isOn ? track.withHeight (batH)
-                        : track.withTop (track.getBottom() - batH);
-
-    g.setColour (juce::Colours::black.withAlpha (0.75f));
-    g.fillRoundedRectangle (batRect.translated (0.0f, 2.0f), 3.5f);
-
-    juce::ColourGradient batGrad (isOn ? juce::Colour (0xfff97316) : juce::Colour (0xff3a4150),
-                                  batRect.getX(), batRect.getY(),
-                                  isOn ? juce::Colour (0xffc2410c) : juce::Colour (0xff1c2029),
-                                  batRect.getX(), batRect.getBottom(), false);
-    g.setGradientFill (batGrad);
-    g.fillRoundedRectangle (batRect, 3.5f);
-
-    g.setColour (juce::Colours::white.withAlpha (isOn ? 0.45f : 0.18f));
-    g.drawHorizontalLine (static_cast<int> (batRect.getY() + 1.0f),
-                          batRect.getX() + 2.0f, batRect.getRight() - 2.0f);
-
-    g.setFont (juce::FontOptions (8.5f, juce::Font::bold));
-    g.setColour (isOn ? juce::Colour (0xffe2e8f0) : juce::Colour (0xff64748b));
-    g.drawText (isOn ? "ACTIVE" : "MUTED",
-                switchHousing.withTop (switchHousing.getBottom() - 13.0f).withHeight (11.0f),
-                juce::Justification::centred);
-}
-
-// ==============================================================================
-// COMPACT RECESSED OLED X/Y MORPH PAD
-// ==============================================================================
-HarmonicXYPad::HarmonicXYPad (HaloEngineAudioProcessor& proc)
-    : processor (proc)
-{
-    setRepaintsOnMouseActivity (true);
-}
-
-void HarmonicXYPad::advanceAnimation (float dt)
-{
-    animPhase = std::fmod (animPhase + dt * 1.5f, juce::MathConstants<float>::twoPi);
-}
-
-void HarmonicXYPad::paint (juce::Graphics& g)
-{
-    auto bounds = getLocalBounds().toFloat();
-
-    g.setColour (juce::Colour (0xff0a0c11));
-    g.fillRoundedRectangle (bounds, 5.0f);
-
-    g.setColour (juce::Colours::white.withAlpha (0.035f));
-    for (int i = 1; i < 4; ++i)
-    {
-        float gx = bounds.getX() + (bounds.getWidth() * i) / 4.0f;
-        float gy = bounds.getY() + (bounds.getHeight() * i) / 4.0f;
-        g.drawLine (gx, bounds.getY() + 4.0f, gx, bounds.getBottom() - 4.0f, 1.0f);
-        g.drawLine (bounds.getX() + 4.0f, gy, bounds.getRight() - 4.0f, gy, 1.0f);
-    }
-
-    float normX = *processor.apvts.getRawParameterValue ("MORPH_X");
-    float normY = *processor.apvts.getRawParameterValue ("MORPH_Y");
-    bool prayerOn = *processor.apvts.getRawParameterValue ("PRAYER_MACRO") > 0.5f;
-
-    float px = bounds.getX() + normX * bounds.getWidth();
-    float py = bounds.getBottom() - normY * bounds.getHeight();
-
-    juce::Colour activeCol = juce::Colour (0xfff97316).interpolatedWith (juce::Colour (0xff38bdf8), (normX + normY) * 0.5f);
-    if (prayerOn)
-        activeCol = juce::Colour (0xffa855f7);
-
-    g.saveState();
-    g.reduceClipRegion (bounds.toNearestInt());
-
-    float glowRad = 44.0f + normY * 22.0f;
-    juce::ColourGradient glow (activeCol.withAlpha (0.42f), px, py,
-                               activeCol.withAlpha (0.0f),  px + glowRad, py + glowRad, true);
-    g.setGradientFill (glow);
-    g.fillEllipse (px - glowRad, py - glowRad, glowRad * 2.0f, glowRad * 2.0f);
-
-    g.setColour (activeCol.withAlpha (0.28f));
-    g.drawLine (px, bounds.getY(), px, bounds.getBottom(), 1.0f);
-    g.drawLine (bounds.getX(), py, bounds.getRight(), py, 1.0f);
-
-    g.setColour (activeCol);
-    g.fillEllipse (px - 7.0f, py - 7.0f, 14.0f, 14.0f);
-    g.setColour (juce::Colour (0xff0a0c11));
-    g.fillEllipse (px - 4.0f, py - 4.0f, 8.0f, 8.0f);
-    g.setColour (juce::Colours::white);
-    g.fillEllipse (px - 1.8f, py - 1.8f, 3.6f, 3.6f);
-
-    juce::ColourGradient topShadow (juce::Colours::black.withAlpha (0.65f), 0.0f, bounds.getY(),
-                                    juce::Colours::transparentBlack,       0.0f, bounds.getY() + 8.0f, false);
-    g.setGradientFill (topShadow);
-    g.fillRect (bounds.withHeight (8.0f));
-
-    g.restoreState();
-
-    g.setFont (juce::FontOptions (8.5f, juce::Font::bold));
-    g.setColour (juce::Colour (0xff64748b));
-    g.drawText ("WARM",   bounds.reduced (7.0f), juce::Justification::bottomLeft);
-    g.drawText ("CHOIR",  bounds.reduced (7.0f), juce::Justification::bottomRight);
-    g.drawText ("DARK",   bounds.reduced (7.0f), juce::Justification::topLeft);
-    g.drawText ("BRIGHT", bounds.reduced (7.0f), juce::Justification::topRight);
-
-    g.setColour (juce::Colours::white.withAlpha (0.06f));
-    g.drawHorizontalLine (static_cast<int> (bounds.getBottom()), bounds.getX() + 3.0f, bounds.getRight() - 3.0f);
-}
-
-void HarmonicXYPad::mouseDown (const juce::MouseEvent& e) { updateFromPosition (e.position); }
-void HarmonicXYPad::mouseDrag (const juce::MouseEvent& e) { updateFromPosition (e.position); }
-
-void HarmonicXYPad::updateFromPosition (juce::Point<float> pos)
-{
-    auto bounds = getLocalBounds().toFloat();
-    float normX = juce::jlimit (0.0f, 1.0f, (pos.x - bounds.getX()) / bounds.getWidth());
-    float normY = juce::jlimit (0.0f, 1.0f, 1.0f - ((pos.y - bounds.getY()) / bounds.getHeight()));
-
-    if (auto* paramX = processor.apvts.getParameter ("MORPH_X"))
-    {
-        paramX->beginChangeGesture();
-        paramX->setValueNotifyingHost (normX);
-        paramX->endChangeGesture();
-    }
-    if (auto* paramY = processor.apvts.getParameter ("MORPH_Y"))
-    {
-        paramY->beginChangeGesture();
-        paramY->setValueNotifyingHost (normY);
-        paramY->endChangeGesture();
-    }
-    repaint();
-}
-
-// ==============================================================================
-// MAIN DUAL-TAB FLAGSHIP VST EDITOR
-// ==============================================================================
 PluginEditor::PluginEditor (HaloEngineAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p),
-      canopyDisplay (p), keybed (p), droneSwitch (p), xyPad (p), oscilloscope (p),
-      synthKeyboard (p.keyboardState, juce::MidiKeyboardComponent::horizontalKeyboard)
+    : AudioProcessorEditor (&p),
+      audioProcessor (p),
+      morphPad (p.apvts),
+      oscAPreview (p.wavetableBank, juce::Colour (0xff4FD1C5)),
+      oscBPreview (p.wavetableBank, juce::Colour (0xffA78BFA)),
+      midiKeyboard (p.keyboardState, juce::MidiKeyboardComponent::horizontalKeyboard)
 {
-    setLookAndFeel (&haloLookAndFeel);
-
-    // --- TOP TAB SWITCHER (STAGE VIEW vs SYNTH ENGINE) ---
-    tabMainBtn.setClickingTogglesState (true);
-    tabMainBtn.setColour (juce::TextButton::buttonColourId,   juce::Colour (0xff14171f));
-    tabMainBtn.setColour (juce::TextButton::buttonOnColourId, juce::Colour (0xff0284c7));
-    tabMainBtn.onClick = [this] { switchTab (0); };
-    addAndMakeVisible (tabMainBtn);
-
-    tabSynthBtn.setClickingTogglesState (true);
-    tabSynthBtn.setColour (juce::TextButton::buttonColourId,   juce::Colour (0xff14171f));
-    tabSynthBtn.setColour (juce::TextButton::buttonOnColourId, juce::Colour (0xff7c3aed));
-    tabSynthBtn.onClick = [this] { switchTab (1); };
-    addAndMakeVisible (tabSynthBtn);
-
-    // --- TOP PRESET TOOLBAR ---
-    prevPresetBtn.setColour (juce::TextButton::buttonColourId,   juce::Colour (0xff14171f));
-    prevPresetBtn.setColour (juce::TextButton::textColourOffId, juce::Colour (0xff94a3b8));
-    prevPresetBtn.onClick = [this] { applyPreset ((currentPresetIdx + 3) % 4); };
-    addAndMakeVisible (prevPresetBtn);
-
-    presetNameBtn.setColour (juce::TextButton::buttonColourId,   juce::Colour (0xff10131a));
-    presetNameBtn.setColour (juce::TextButton::textColourOffId, juce::Colour (0xffe2e8f0));
-    presetNameBtn.onClick = [this] { applyPreset ((currentPresetIdx + 1) % 4); };
-    addAndMakeVisible (presetNameBtn);
-
-    nextPresetBtn.setColour (juce::TextButton::buttonColourId,   juce::Colour (0xff14171f));
-    nextPresetBtn.setColour (juce::TextButton::textColourOffId, juce::Colour (0xff94a3b8));
-    nextPresetBtn.onClick = [this] { applyPreset ((currentPresetIdx + 1) % 4); };
-    addAndMakeVisible (nextPresetBtn);
-
-    // --- FLANKING METERS ---
-    addAndMakeVisible (leftDuckMeter);
-    addAndMakeVisible (rightOutMeter);
+    setLookAndFeel (&customLookAndFeel);
+    setSize (1040, 680);
 
     // ==========================================================================
-    // TAB 0: STAGE PERFORMANCE COMPONENTS
+    // HEADER NAVIGATION & PRESET BROWSER
     // ==========================================================================
-    addAndMakeVisible (canopyDisplay);
-    addAndMakeVisible (keybed);
-    addAndMakeVisible (droneSwitch);
+    for (auto* btn : { &stageTabButton, &synthTabButton })
+    {
+        btn->setClickingTogglesState (false);
+        addAndMakeVisible (btn);
+    }
+    stageTabButton.onClick = [this] { setActiveTab (0); };
+    synthTabButton.onClick = [this] { setActiveTab (1); };
 
-    suggestKeyBtn.setColour (juce::TextButton::buttonColourId,   juce::Colour (0xff12151d));
-    suggestKeyBtn.setColour (juce::TextButton::textColourOffId, juce::Colour (0xff94a3b8));
-    suggestKeyBtn.onClick = [this] {
-        if (currentSuggestedKey >= 0 && currentSuggestedKey < 12)
-        {
-            if (auto* keyParam = audioProcessor.apvts.getParameter ("DRONE_KEY"))
-            {
-                keyParam->beginChangeGesture();
-                keyParam->setValueNotifyingHost (keyParam->convertTo0to1 (static_cast<float> (currentSuggestedKey)));
-                keyParam->endChangeGesture();
-            }
-        }
+    addAndMakeVisible (prevPresetButton);
+    addAndMakeVisible (nextPresetButton);
+    addAndMakeVisible (presetSelector);
+
+    const auto& presets = HaloPresetBank::getPresets();
+    for (int i = 0; i < static_cast<int> (presets.size()); ++i)
+        presetSelector.addItem (presets[static_cast<size_t> (i)].name, i + 1);
+    presetSelector.setSelectedId (1, juce::dontSendNotification);
+    presetSelector.onChange = [this]
+    {
+        int sel = presetSelector.getSelectedId() - 1;
+        if (sel >= 0)
+            loadPresetIndex (sel);
     };
-    addAndMakeVisible (suggestKeyBtn);
+
+    prevPresetButton.onClick = [this] { loadPresetIndex (currentPresetIdx - 1); };
+    nextPresetButton.onClick = [this] { loadPresetIndex (currentPresetIdx + 1); };
 
     keyAssistToggle.setClickingTogglesState (true);
-    keyAssistToggle.setColour (juce::TextButton::buttonColourId,   juce::Colour (0xff12151d));
-    keyAssistToggle.setColour (juce::TextButton::buttonOnColourId, juce::Colour (0xff2a3242));
     addAndMakeVisible (keyAssistToggle);
-    keyAssistAttach = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (
-        audioProcessor.apvts, "KEY_DETECT_ON", keyAssistToggle);
+    keyAssistAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (audioProcessor.apvts, "KEY_DETECT_ON", keyAssistToggle);
 
-    configureKnob (droneLevelSlider, droneLevelLabel, "DRONE", juce::Colour (0xfff97316));
-    droneLevelAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (
-        audioProcessor.apvts, "DRONE_LEVEL", droneLevelSlider);
+    applyKeyButton.setColour (juce::TextButton::buttonColourId, juce::Colour (0xffF59E0B));
+    applyKeyButton.setColour (juce::TextButton::textColourOffId, juce::Colour (0xff0B0F17));
+    applyKeyButton.onClick = [this]
+    {
+        if (detectedKeyCache >= 0 && detectedKeyCache < 12)
+        {
+            if (auto* param = audioProcessor.apvts.getParameter ("DRONE_KEY"))
+                param->setValueNotifyingHost (param->convertTo0to1 (static_cast<float> (detectedKeyCache)));
+        }
+    };
+    addChildComponent (applyKeyButton);
 
-    addAndMakeVisible (xyPad);
+    auto configureKnob = [this] (juce::Slider& slider, juce::Label& label, const juce::String& text, juce::Colour accent)
+    {
+        slider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+        slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 52, 14);
+        slider.setColour (juce::Slider::rotarySliderFillColourId, accent);
+        slider.setColour (juce::Slider::textBoxTextColourId, juce::Colour (0xffCBD5E1));
+        slider.setColour (juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
+        addAndMakeVisible (slider);
 
-    configureKnob (shimmerSlider, shimmerLabel, "SHIMMER", juce::Colour (0xff38bdf8));
-    shimmerAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (
-        audioProcessor.apvts, "SHIMMER_AMT", shimmerSlider);
-
-    configureKnob (decaySlider, decayLabel, "SPACE", juce::Colour (0xff818cf8));
-    decayAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (
-        audioProcessor.apvts, "AMBIENCE_DECAY", decaySlider);
-
-    configureKnob (duckSlider, duckLabel, "DUCK", juce::Colour (0xfff59e0b));
-    duckAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (
-        audioProcessor.apvts, "AUTO_DUCK", duckSlider);
-
-    configureKnob (mixSlider, mixLabel, "MIX", juce::Colour (0xff38bdf8));
-    mixAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (
-        audioProcessor.apvts, "AMBIENCE_MIX", mixSlider);
-
-    prayerMacroBtn.setClickingTogglesState (true);
-    prayerMacroBtn.setColour (juce::TextButton::buttonColourId,   juce::Colour (0xff1b1629));
-    prayerMacroBtn.setColour (juce::TextButton::buttonOnColourId, juce::Colour (0xff7c3aed));
-    addAndMakeVisible (prayerMacroBtn);
-    prayerMacroAttach = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (
-        audioProcessor.apvts, "PRAYER_MACRO", prayerMacroBtn);
-
-    // ==========================================================================
-    // TAB 1: SYNTH & VOICING ENGINE LAB COMPONENTS
-    // ==========================================================================
-    addChildComponent (oscilloscope);
-
-    const char* voiceParamIds[6] = { "VOICE_SUB", "VOICE_ROOT", "VOICE_FIFTH", "VOICE_OCT", "VOICE_NINTH", "VOICE_HIGH" };
-    const char* voiceNames[6]    = { "SUB -1", "ROOT", "FIFTH", "OCT +1", "NINTH", "HI 5TH" };
-    const juce::Colour voiceCols[6] = {
-        juce::Colour (0xfff97316), juce::Colour (0xff38bdf8), juce::Colour (0xff818cf8),
-        juce::Colour (0xff38bdf8), juce::Colour (0xffa855f7), juce::Colour (0xfffb7185)
+        label.setText (text, juce::dontSendNotification);
+        label.setFont (juce::Font (10.0f, juce::Font::bold));
+        label.setColour (juce::Label::textColourId, juce::Colour (0xff94A3B8));
+        label.setJustificationType (juce::Justification::centred);
+        addAndMakeVisible (label);
     };
 
-    for (int i = 0; i < 6; ++i)
+    // ==========================================================================
+    // TAB 0: STAGE VIEW CONTROLS
+    // ==========================================================================
+    const std::array<juce::String, 12> noteNames { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+    for (int i = 0; i < 12; ++i)
     {
-        configureVerticalFader (voiceFaders[static_cast<size_t> (i)],
-                                voiceLabels[static_cast<size_t> (i)],
-                                voiceNames[i], voiceCols[i]);
-        voiceAttachments[static_cast<size_t> (i)] = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (
-            audioProcessor.apvts, voiceParamIds[i], voiceFaders[static_cast<size_t> (i)]);
+        auto& btn = keyButtons[static_cast<size_t> (i)];
+        btn.setButtonText (noteNames[static_cast<size_t> (i)]);
+        btn.onClick = [this, i]
+        {
+            if (auto* param = audioProcessor.apvts.getParameter ("DRONE_KEY"))
+                param->setValueNotifyingHost (param->convertTo0to1 (static_cast<float> (i)));
+        };
+        addAndMakeVisible (btn);
     }
 
-    auto initSynthKnob = [&] (juce::Slider& s, juce::Label& l, const char* paramId, const char* name, juce::Colour col,
-                              std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>& att)
+    dronePowerButton.setClickingTogglesState (true);
+    addAndMakeVisible (dronePowerButton);
+    dronePowerAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (audioProcessor.apvts, "DRONE_ON", dronePowerButton);
+
+    prayerMacroButton.setClickingTogglesState (true);
+    prayerMacroButton.setColour (juce::TextButton::buttonOnColourId, juce::Colour (0xffF59E0B));
+    addAndMakeVisible (prayerMacroButton);
+    prayerMacroAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (audioProcessor.apvts, "PRAYER_MACRO", prayerMacroButton);
+
+    addAndMakeVisible (morphPad);
+
+    configureKnob (droneLevelSlider, droneLevelLabel, "DRONE LVL",   juce::Colour (0xff4FD1C5));
+    configureKnob (shimmerSlider,    shimmerLabel,    "SHIMMER OCT", juce::Colour (0xffA78BFA));
+    configureKnob (decaySlider,      decayLabel,      "SPACE DECAY", juce::Colour (0xff38BDF8));
+    configureKnob (autoDuckSlider,   autoDuckLabel,   "BAND DUCK",   juce::Colour (0xffF59E0B));
+    configureKnob (mixSlider,        mixLabel,        "WET MIX",     juce::Colour (0xff4FD1C5));
+
+    configureKnob (spaceWarpSlider,  spaceWarpLabel,  "CLOUD WARP",  juce::Colour (0xffA78BFA));
+    configureKnob (spaceModSlider,   spaceModLabel,   "TANK MOD",    juce::Colour (0xff38BDF8));
+    configureKnob (spaceDampSlider,  spaceDampLabel,  "AIR DAMP",    juce::Colour (0xff94A3B8));
+
+    droneLevelAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "DRONE_LEVEL",    droneLevelSlider);
+    shimmerAtt    = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "SHIMMER_AMT",    shimmerSlider);
+    decayAtt      = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "AMBIENCE_DECAY", decaySlider);
+    autoDuckAtt   = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "AUTO_DUCK",      autoDuckSlider);
+    mixAtt        = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "AMBIENCE_MIX",   mixSlider);
+
+    spaceWarpAtt  = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "SPACE_WARP",     spaceWarpSlider);
+    spaceModAtt   = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "SPACE_MOD",      spaceModSlider);
+    spaceDampAtt  = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "SPACE_DAMP",     spaceDampSlider);
+
+    // ==========================================================================
+    // TAB 1: SERUM / VITAL / SUPERMASSIVE SYNTH ENGINE CONTROLS
+    // ==========================================================================
+    addAndMakeVisible (oscAPreview);
+    addAndMakeVisible (oscBPreview);
+
+    juce::StringArray wtNames { "01 // ANALOG SAW-TRI", "02 // VOCAL CHOIR", "03 // GLASS BELL", "04 // PWM ENSEMBLE", "05 // BOWED STRINGS" };
+    juce::StringArray warpModes { "WARP: OFF", "PHASE BEND", "HARD SYNC", "FM (B -> A)" };
+
+    for (int i = 0; i < wtNames.size(); ++i)
     {
-        configureKnob (s, l, name, col);
-        s.setVisible (false);
-        l.setVisible (false);
-        att = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, paramId, s);
+        oscATableBox.addItem (wtNames[i], i + 1);
+        oscBTableBox.addItem (wtNames[i], i + 1);
+    }
+    for (int i = 0; i < warpModes.size(); ++i)
+        oscAWarpModeBox.addItem (warpModes[i], i + 1);
+
+    addAndMakeVisible (oscATableBox);
+    addAndMakeVisible (oscAWarpModeBox);
+    addAndMakeVisible (oscBTableBox);
+
+    oscATableAtt    = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (audioProcessor.apvts, "OSC_A_TABLE",     oscATableBox);
+    oscAWarpModeAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (audioProcessor.apvts, "OSC_A_WARP_MODE", oscAWarpModeBox);
+    oscBTableAtt    = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (audioProcessor.apvts, "OSC_B_TABLE",     oscBTableBox);
+
+    configureKnob (oscAPosSlider,   oscAPosLabel,   "WT POS",    juce::Colour (0xff4FD1C5));
+    configureKnob (oscAWarpSlider,  oscAWarpLabel,  "WARP AMT",  juce::Colour (0xff4FD1C5));
+    configureKnob (oscALevelSlider, oscALevelLabel, "OSC A LVL", juce::Colour (0xff4FD1C5));
+
+    configureKnob (oscBPosSlider,   oscBPosLabel,   "WT POS",    juce::Colour (0xffA78BFA));
+    configureKnob (oscBOctSlider,   oscBOctLabel,   "OCTAVE",    juce::Colour (0xffA78BFA));
+    configureKnob (oscBLevelSlider, oscBLevelLabel, "OSC B LVL", juce::Colour (0xffA78BFA));
+    configureKnob (airNoiseSlider,  airNoiseLabel,  "FELT AIR",  juce::Colour (0xff38BDF8));
+
+    oscAPosAtt   = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "OSC_A_POS",   oscAPosSlider);
+    oscAWarpAtt  = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "OSC_A_WARP",  oscAWarpSlider);
+    oscALevelAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "OSC_A_LEVEL", oscALevelSlider);
+
+    oscBPosAtt   = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "OSC_B_POS",   oscBPosSlider);
+    oscBOctAtt   = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "OSC_B_OCT",   oscBOctSlider);
+    oscBLevelAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "OSC_B_LEVEL", oscBLevelSlider);
+    airNoiseAtt  = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "AIR_NOISE",   airNoiseSlider);
+
+    // Filter + LFO 1 & LFO 2 Controls
+    juce::StringArray fModes { "LP 24dB LADDER", "LP 12dB OB-6", "BP FORMANT", "NOTCH PHASER" };
+    juce::StringArray lShapes { "SINE", "TRIANGLE", "WANDER" };
+
+    for (int i = 0; i < fModes.size(); ++i)
+        filterModeBox.addItem (fModes[i], i + 1);
+    for (int i = 0; i < lShapes.size(); ++i)
+    {
+        lfo1ShapeBox.addItem (lShapes[i], i + 1);
+        lfo2ShapeBox.addItem (lShapes[i], i + 1);
+    }
+
+    addAndMakeVisible (filterModeBox);
+    addAndMakeVisible (lfo1ShapeBox);
+    addAndMakeVisible (lfo2ShapeBox);
+
+    filterModeAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (audioProcessor.apvts, "FILTER_MODE", filterModeBox);
+    lfo1ShapeAtt  = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (audioProcessor.apvts, "LFO1_SHAPE",  lfo1ShapeBox);
+    lfo2ShapeAtt  = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (audioProcessor.apvts, "LFO2_SHAPE",  lfo2ShapeBox);
+
+    configureKnob (filterResSlider, filterResLabel, "RESONANCE",  juce::Colour (0xff38BDF8));
+    configureKnob (filterEnvSlider, filterEnvLabel, "ENV2 -> CUT",juce::Colour (0xff38BDF8));
+    configureKnob (driveSlider,     driveLabel,     "TUBE DRIVE", juce::Colour (0xffF59E0B));
+
+    configureKnob (lfo1RateSlider,  lfo1RateLabel,  "LFO1 RATE",  juce::Colour (0xff4FD1C5));
+    configureKnob (lfo1WtSlider,    lfo1WtLabel,    "LFO1 -> WT", juce::Colour (0xff4FD1C5));
+    configureKnob (lfo2RateSlider,  lfo2RateLabel,  "LFO2 RATE",  juce::Colour (0xffA78BFA));
+    configureKnob (lfo2CutSlider,   lfo2CutLabel,   "LFO2 -> CUT",juce::Colour (0xffA78BFA));
+
+    filterResAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "SYNTH_RES",      filterResSlider);
+    filterEnvAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "FILTER_ENV_AMT", filterEnvSlider);
+    driveAtt     = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "SYNTH_DRIVE",    driveSlider);
+
+    lfo1RateAtt  = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "LFO1_RATE",      lfo1RateSlider);
+    lfo1WtAtt    = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "LFO1_WT_AMT",    lfo1WtSlider);
+    lfo2RateAtt  = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "LFO2_RATE",      lfo2RateSlider);
+    lfo2CutAtt   = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "LFO2_CUT_AMT",   lfo2CutSlider);
+
+    // 6-Voice Harmonic Drone Mixer Faders
+    const std::array<juce::String, 6> voiceParamIDs { "VOICE_SUB", "VOICE_ROOT", "VOICE_FIFTH", "VOICE_OCT", "VOICE_NINTH", "VOICE_HIGH" };
+    const std::array<juce::String, 6> voiceNames    { "SUB", "ROOT", "5TH", "OCT", "9TH", "HI 5TH" };
+    const std::array<juce::Colour, 6> voiceColors   {
+        juce::Colour (0xff38BDF8), juce::Colour (0xff4FD1C5), juce::Colour (0xff4FD1C5),
+        juce::Colour (0xffA78BFA), juce::Colour (0xffA78BFA), juce::Colour (0xffF59E0B)
     };
 
-    initSynthKnob (detuneSlider,  detuneLabel,  "SYNTH_DETUNE",  "DRIFT",   juce::Colour (0xfff97316), detuneAttach);
-    initSynthKnob (widthSlider,   widthLabel,   "SYNTH_WIDTH",   "WIDTH",   juce::Colour (0xff38bdf8), widthAttach);
-    initSynthKnob (resSlider,     resLabel,     "SYNTH_RES",     "RES",     juce::Colour (0xfffb7185), resAttach);
-    initSynthKnob (driveSlider,   driveLabel,   "SYNTH_DRIVE",   "DRIVE",   juce::Colour (0xfff59e0b), driveAttach);
-    initSynthKnob (glideSlider,   glideLabel,   "SYNTH_GLIDE",   "GLIDE",   juce::Colour (0xffa855f7), glideAttach);
-    initSynthKnob (attackSlider,  attackLabel,  "SYNTH_ATTACK",  "ATTACK",  juce::Colour (0xff10b981), attackAttach);
-    initSynthKnob (releaseSlider, releaseLabel, "SYNTH_RELEASE", "RELEASE", juce::Colour (0xff818cf8), releaseAttach);
+    for (size_t i = 0; i < 6; ++i)
+    {
+        auto& fader = voiceFaders[i];
+        fader.setSliderStyle (juce::Slider::LinearVertical);
+        fader.setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
+        fader.setColour (juce::Slider::thumbColourId, voiceColors[i]);
+        addAndMakeVisible (fader);
 
-    synthKeyboard.setAvailableRange (36, 72);
-    synthKeyboard.setKeyWidth (26.0f);
-    synthKeyboard.setColour (juce::MidiKeyboardComponent::whiteNoteColourId,         juce::Colour (0xff232834));
-    synthKeyboard.setColour (juce::MidiKeyboardComponent::blackNoteColourId,         juce::Colour (0xff0c0e14));
-    synthKeyboard.setColour (juce::MidiKeyboardComponent::keySeparatorLineColourId,  juce::Colour (0xff12151c));
-    synthKeyboard.setColour (juce::MidiKeyboardComponent::keyDownOverlayColourId,    juce::Colour (0xff38bdf8));
-    synthKeyboard.setColour (juce::MidiKeyboardComponent::mouseOverKeyOverlayColourId, juce::Colour (0xff38bdf8).withAlpha (0.35f));
-    synthKeyboard.setOctaveForMiddleC (4);
-    addChildComponent (synthKeyboard);
+        auto& lbl = voiceLabels[i];
+        lbl.setText (voiceNames[i], juce::dontSendNotification);
+        lbl.setFont (juce::Font (9.5f, juce::Font::bold));
+        lbl.setColour (juce::Label::textColourId, juce::Colour (0xff94A3B8));
+        lbl.setJustificationType (juce::Justification::centred);
+        addAndMakeVisible (lbl);
 
-    switchTab (0);
-    setSize (960, 560);
-    setResizable (true, true);
+        voiceAtts[i] = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (
+            audioProcessor.apvts, voiceParamIDs[i], fader);
+    }
+
+    configureKnob (detuneSlider,  detuneLabel,  "UNISON",  juce::Colour (0xffA78BFA));
+    configureKnob (widthSlider,   widthLabel,   "WIDTH",   juce::Colour (0xff38BDF8));
+    configureKnob (glideSlider,   glideLabel,   "GLIDE",   juce::Colour (0xff4FD1C5));
+    configureKnob (attackSlider,  attackLabel,  "ATTACK",  juce::Colour (0xff4FD1C5));
+    configureKnob (releaseSlider, releaseLabel, "RELEASE", juce::Colour (0xff4FD1C5));
+
+    detuneAtt  = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "SYNTH_DETUNE",  detuneSlider);
+    widthAtt   = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "SYNTH_WIDTH",   widthSlider);
+    glideAtt   = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "SYNTH_GLIDE",   glideSlider);
+    attackAtt  = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "SYNTH_ATTACK",  attackSlider);
+    releaseAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "SYNTH_RELEASE", releaseSlider);
+
+    midiKeyboard.setKeyWidth (24.0f);
+    midiKeyboard.setColour (juce::MidiKeyboardComponent::whiteNoteColourId, juce::Colour (0xffE2E8F0));
+    midiKeyboard.setColour (juce::MidiKeyboardComponent::blackNoteColourId, juce::Colour (0xff121824));
+    midiKeyboard.setColour (juce::MidiKeyboardComponent::keyDownOverlayColourId, juce::Colour (0xff4FD1C5));
+    addAndMakeVisible (midiKeyboard);
+
+    setActiveTab (0);
     startTimerHz (30);
 }
 
 PluginEditor::~PluginEditor()
 {
-    stopTimer();
     setLookAndFeel (nullptr);
 }
 
-void PluginEditor::switchTab (int tabIndex)
+void PluginEditor::loadPresetIndex (int newIndex)
 {
-    activeTab = tabIndex;
-    bool isStage = (activeTab == 0);
-    bool isSynth = (activeTab == 1);
+    const auto& presets = HaloPresetBank::getPresets();
+    int count = static_cast<int> (presets.size());
+    if (count == 0) return;
 
-    tabMainBtn.setToggleState  (isStage, juce::dontSendNotification);
-    tabSynthBtn.setToggleState (isSynth, juce::dontSendNotification);
+    currentPresetIdx = ((newIndex % count) + count) % count;
+    presetSelector.setSelectedId (currentPresetIdx + 1, juce::dontSendNotification);
+    HaloPresetBank::applyPreset (audioProcessor.apvts, currentPresetIdx);
+    morphPad.repaint();
+}
 
-    canopyDisplay.setVisible (isStage);
-    keybed.setVisible (isStage);
-    droneSwitch.setVisible (isStage);
-    suggestKeyBtn.setVisible (isStage);
-    keyAssistToggle.setVisible (isStage);
-    droneLevelSlider.setVisible (isStage);
-    droneLevelLabel.setVisible (isStage);
-    xyPad.setVisible (isStage);
-    shimmerSlider.setVisible (isStage); shimmerLabel.setVisible (isStage);
-    decaySlider.setVisible (isStage);   decayLabel.setVisible (isStage);
-    duckSlider.setVisible (isStage);    duckLabel.setVisible (isStage);
-    mixSlider.setVisible (isStage);     mixLabel.setVisible (isStage);
-    prayerMacroBtn.setVisible (isStage);
+void PluginEditor::setActiveTab (int tabIndex)
+{
+    currentTab = tabIndex;
 
-    oscilloscope.setVisible (isSynth);
-    for (int i = 0; i < 6; ++i)
+    stageTabButton.setColour (juce::TextButton::buttonColourId,
+                              currentTab == 0 ? juce::Colour (0xff4FD1C5) : juce::Colour (0xff161C27));
+    stageTabButton.setColour (juce::TextButton::textColourOffId,
+                              currentTab == 0 ? juce::Colour (0xff0B0F17) : juce::Colour (0xff94A3B8));
+
+    synthTabButton.setColour (juce::TextButton::buttonColourId,
+                              currentTab == 1 ? juce::Colour (0xffA78BFA) : juce::Colour (0xff161C27));
+    synthTabButton.setColour (juce::TextButton::textColourOffId,
+                              currentTab == 1 ? juce::Colour (0xff0B0F17) : juce::Colour (0xff94A3B8));
+
+    bool isStage = (currentTab == 0);
+
+    for (auto& b : keyButtons) b.setVisible (isStage);
+    dronePowerButton.setVisible (isStage);
+    prayerMacroButton.setVisible (isStage);
+    morphPad.setVisible (isStage);
+
+    for (auto* c : std::initializer_list<juce::Component*> {
+        &droneLevelSlider, &shimmerSlider, &decaySlider, &autoDuckSlider, &mixSlider,
+        &spaceWarpSlider, &spaceModSlider, &spaceDampSlider,
+        &droneLevelLabel, &shimmerLabel, &decayLabel, &autoDuckLabel, &mixLabel,
+        &spaceWarpLabel, &spaceModLabel, &spaceDampLabel })
     {
-        voiceFaders[static_cast<size_t> (i)].setVisible (isSynth);
-        voiceLabels[static_cast<size_t> (i)].setVisible (isSynth);
+        c->setVisible (isStage);
     }
 
-    detuneSlider.setVisible (isSynth);  detuneLabel.setVisible (isSynth);
-    widthSlider.setVisible (isSynth);   widthLabel.setVisible (isSynth);
-    resSlider.setVisible (isSynth);     resLabel.setVisible (isSynth);
-    driveSlider.setVisible (isSynth);   driveLabel.setVisible (isSynth);
-    glideSlider.setVisible (isSynth);   glideLabel.setVisible (isSynth);
-    attackSlider.setVisible (isSynth);  attackLabel.setVisible (isSynth);
-    releaseSlider.setVisible (isSynth); releaseLabel.setVisible (isSynth);
-    synthKeyboard.setVisible (isSynth);
+    bool isSynth = (currentTab == 1);
+
+    for (auto* c : std::initializer_list<juce::Component*> {
+        &oscAPreview, &oscBPreview,
+        &oscATableBox, &oscAWarpModeBox, &oscAPosSlider, &oscAWarpSlider, &oscALevelSlider,
+        &oscAPosLabel, &oscAWarpLabel, &oscALevelLabel,
+        &oscBTableBox, &oscBPosSlider, &oscBOctSlider, &oscBLevelSlider, &airNoiseSlider,
+        &oscBPosLabel, &oscBOctLabel, &oscBLevelLabel, &airNoiseLabel,
+        &filterModeBox, &lfo1ShapeBox, &lfo2ShapeBox,
+        &filterResSlider, &filterEnvSlider, &driveSlider,
+        &lfo1RateSlider, &lfo1WtSlider, &lfo2RateSlider, &lfo2CutSlider,
+        &filterResLabel, &filterEnvLabel, &driveLabel,
+        &lfo1RateLabel, &lfo1WtLabel, &lfo2RateLabel, &lfo2CutLabel,
+        &detuneSlider, &widthSlider, &glideSlider, &attackSlider, &releaseSlider,
+        &detuneLabel, &widthLabel, &glideLabel, &attackLabel, &releaseLabel,
+        &midiKeyboard })
+    {
+        c->setVisible (isSynth);
+    }
+
+    for (size_t i = 0; i < 6; ++i)
+    {
+        voiceFaders[i].setVisible (isSynth);
+        voiceLabels[i].setVisible (isSynth);
+    }
 
     repaint();
 }
 
-void PluginEditor::configureKnob (juce::Slider& slider, juce::Label& label,
-                                  const juce::String& text, juce::Colour accent)
-{
-    slider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
-    slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 42, 14);
-    slider.setColour (juce::Slider::rotarySliderFillColourId, accent);
-    addAndMakeVisible (slider);
-
-    label.setText (text, juce::dontSendNotification);
-    label.setJustificationType (juce::Justification::centred);
-    label.setFont (juce::FontOptions (9.5f, juce::Font::bold));
-    label.setColour (juce::Label::textColourId, juce::Colour (0xff94a3b8));
-    addAndMakeVisible (label);
-}
-
-void PluginEditor::configureVerticalFader (juce::Slider& slider, juce::Label& label,
-                                           const juce::String& text, juce::Colour accent)
-{
-    slider.setSliderStyle (juce::Slider::LinearVertical);
-    slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 40, 14);
-    slider.setColour (juce::Slider::thumbColourId, accent);
-    addChildComponent (slider);
-
-    label.setText (text, juce::dontSendNotification);
-    label.setJustificationType (juce::Justification::centred);
-    label.setFont (juce::FontOptions (9.0f, juce::Font::bold));
-    label.setColour (juce::Label::textColourId, juce::Colour (0xff94a3b8));
-    addChildComponent (label);
-}
-
-void PluginEditor::applyPreset (int idx)
-{
-    currentPresetIdx = idx;
-    auto setP = [&] (const juce::String& id, float val) {
-        if (auto* p = audioProcessor.apvts.getParameter (id))
-            p->setValueNotifyingHost (val);
-    };
-
-    if (idx == 0)
-    {
-        presetNameBtn.setButtonText ("01 // CATHEDRAL HALO");
-        setP ("MORPH_X", 0.35f); setP ("MORPH_Y", 0.45f);
-        setP ("SHIMMER_AMT", 0.50f); setP ("AMBIENCE_DECAY", 0.85f); setP ("AMBIENCE_MIX", 0.55f);
-        setP ("SYNTH_DETUNE", 0.25f); setP ("SYNTH_RES", 0.20f);
-    }
-    else if (idx == 1)
-    {
-        presetNameBtn.setButtonText ("02 // WARM SUB FOUNDATION");
-        setP ("MORPH_X", 0.12f); setP ("MORPH_Y", 0.22f);
-        setP ("SHIMMER_AMT", 0.20f); setP ("AMBIENCE_DECAY", 0.72f); setP ("AMBIENCE_MIX", 0.40f);
-        setP ("SYNTH_DETUNE", 0.15f); setP ("SYNTH_RES", 0.10f);
-    }
-    else if (idx == 2)
-    {
-        presetNameBtn.setButtonText ("03 // ANGELIC GLASS CHOIR");
-        setP ("MORPH_X", 0.88f); setP ("MORPH_Y", 0.82f);
-        setP ("SHIMMER_AMT", 0.78f); setP ("AMBIENCE_DECAY", 0.92f); setP ("AMBIENCE_MIX", 0.68f);
-        setP ("SYNTH_DETUNE", 0.45f); setP ("SYNTH_RES", 0.32f);
-    }
-    else
-    {
-        presetNameBtn.setButtonText ("04 // INTIMATE ALTAR CALL");
-        setP ("MORPH_X", 0.25f); setP ("MORPH_Y", 0.18f);
-        setP ("SHIMMER_AMT", 0.35f); setP ("AMBIENCE_DECAY", 0.95f); setP ("AMBIENCE_MIX", 0.62f);
-        setP ("SYNTH_DETUNE", 0.30f); setP ("SYNTH_RES", 0.15f);
-    }
-}
-
 void PluginEditor::timerCallback()
 {
-    canopyDisplay.advanceAnimation (1.0f / 30.0f);
-    xyPad.advanceAnimation (1.0f / 30.0f);
-
-    float outL = audioProcessor.outLevelL.load (std::memory_order_relaxed) * 3.4f;
-    float outR = audioProcessor.outLevelR.load (std::memory_order_relaxed) * 3.4f;
-    float duck = audioProcessor.duckMeter.load (std::memory_order_relaxed);
-
-    leftDuckMeter.setLevels (duck, duck);
-    rightOutMeter.setLevels (outL, outR);
-
     int activeKey = static_cast<int> (*audioProcessor.apvts.getRawParameterValue ("DRONE_KEY"));
+    bool droneOn  = *audioProcessor.apvts.getRawParameterValue ("DRONE_ON") > 0.5f;
+    bool prayerOn = *audioProcessor.apvts.getRawParameterValue ("PRAYER_MACRO") > 0.5f;
     bool assistOn = *audioProcessor.apvts.getRawParameterValue ("KEY_DETECT_ON") > 0.5f;
-    int suggested = audioProcessor.suggestedKeyIndex.load (std::memory_order_relaxed);
-    const juce::StringArray keyNames { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
 
-    if (! assistOn)
+    keyAssistToggle.setButtonText (assistOn ? "KEY ASSIST: ON" : "KEY ASSIST: OFF");
+
+    detectedKeyCache = audioProcessor.suggestedKeyIndex.load (std::memory_order_relaxed);
+    bool showBanner = assistOn && (detectedKeyCache >= 0 && detectedKeyCache < 12 && detectedKeyCache != activeKey);
+    applyKeyButton.setVisible (showBanner);
+
+    if (currentTab == 0)
     {
-        currentSuggestedKey = -1;
-        suggestKeyBtn.setButtonText ("ASSIST OFF");
-        suggestKeyBtn.setColour (juce::TextButton::buttonColourId,   juce::Colour (0xff12151d));
-        suggestKeyBtn.setColour (juce::TextButton::textColourOffId, juce::Colour (0xff475569));
-    }
-    else if (suggested >= 0 && suggested < 12 && suggested != activeKey)
-    {
-        currentSuggestedKey = suggested;
-        suggestKeyBtn.setButtonText ("USE " + keyNames[suggested] + "?");
-        suggestKeyBtn.setColour (juce::TextButton::buttonColourId,   juce::Colour (0xffd97706));
-        suggestKeyBtn.setColour (juce::TextButton::textColourOffId, juce::Colours::white);
+        for (int i = 0; i < 12; ++i)
+        {
+            auto& btn = keyButtons[static_cast<size_t> (i)];
+            if (i == activeKey)
+            {
+                btn.setColour (juce::TextButton::buttonColourId, juce::Colour (0xff4FD1C5));
+                btn.setColour (juce::TextButton::textColourOffId, juce::Colour (0xff0B0F17));
+            }
+            else if (showBanner && i == detectedKeyCache)
+            {
+                btn.setColour (juce::TextButton::buttonColourId, juce::Colour (0xffF59E0B).withAlpha (0.28f));
+                btn.setColour (juce::TextButton::textColourOffId, juce::Colour (0xffFBBF24));
+            }
+            else
+            {
+                btn.setColour (juce::TextButton::buttonColourId, juce::Colour (0xff151B26));
+                btn.setColour (juce::TextButton::textColourOffId, juce::Colour (0xff94A3B8));
+            }
+        }
+
+        dronePowerButton.setButtonText (droneOn ? "DRONE ACTIVE" : "DRONE MUTED");
+        dronePowerButton.setColour (juce::TextButton::buttonOnColourId, juce::Colour (0xff4FD1C5));
+        prayerMacroButton.setButtonText (prayerOn ? "PRAYER SWELL: ACTIVE" : "PRAYER / TRANSITION");
+        morphPad.repaint();
     }
     else
     {
-        currentSuggestedKey = -1;
-        suggestKeyBtn.setButtonText ("KEY: " + keyNames[activeKey]);
-        suggestKeyBtn.setColour (juce::TextButton::buttonColourId,   juce::Colour (0xff151821));
-        suggestKeyBtn.setColour (juce::TextButton::textColourOffId, juce::Colour (0xff64748b));
+        int oscATab = static_cast<int> (*audioProcessor.apvts.getRawParameterValue ("OSC_A_TABLE"));
+        int oscAWm  = static_cast<int> (*audioProcessor.apvts.getRawParameterValue ("OSC_A_WARP_MODE"));
+        float oscAW = *audioProcessor.apvts.getRawParameterValue ("OSC_A_WARP");
+        float livePosA = audioProcessor.liveOscAPos.load (std::memory_order_relaxed);
+        oscAPreview.updateState (oscATab, livePosA, oscAW, oscAWm);
+
+        int oscBTab = static_cast<int> (*audioProcessor.apvts.getRawParameterValue ("OSC_B_TABLE"));
+        float livePosB = audioProcessor.liveOscBPos.load (std::memory_order_relaxed);
+        oscBPreview.updateState (oscBTab, livePosB, 0.0f, 0);
     }
 
     repaint();
@@ -1058,202 +383,321 @@ void PluginEditor::timerCallback()
 
 void PluginEditor::paint (juce::Graphics& g)
 {
-    auto bounds = getLocalBounds().toFloat();
+    g.fillAll (juce::Colour (0xff0B0F17));
 
-    juce::ColourGradient bgGrad (juce::Colour (0xff1c2029), 0.0f, 0.0f,
-                                 juce::Colour (0xff151820), 0.0f, bounds.getBottom(), false);
-    g.setGradientFill (bgGrad);
-    g.fillAll();
+    // Top Header Bar
+    g.setColour (juce::Colour (0xff101622));
+    g.fillRect (0, 0, getWidth(), 62);
+    g.setColour (juce::Colour (0xff1E2636));
+    g.drawHorizontalLine (62, 0.0f, static_cast<float> (getWidth()));
 
-    g.setColour (juce::Colours::white.withAlpha (0.01f));
-    for (int y = 0; y < getHeight(); y += 2)
-        g.drawHorizontalLine (y, 0.0f, bounds.getRight());
+    g.setFont (juce::Font (19.0f, juce::Font::bold));
+    g.setColour (juce::Colour (0xffF8FAFC));
+    g.drawText ("HALO ENGINE", 20, 10, 210, 24, juce::Justification::left);
 
-    auto header = bounds.removeFromTop (44.0f).reduced (20.0f, 8.0f);
-    g.setColour (juce::Colour (0xffe2e8f0));
-    g.setFont (juce::FontOptions (14.5f, juce::Font::bold));
-    g.drawText ("HALO ENGINE", header.withWidth (130.0f), juce::Justification::centredLeft);
+    g.setFont (juce::Font (9.5f, juce::Font::bold));
+    g.setColour (juce::Colour (0xff4FD1C5));
+    g.drawText ("SERUM WAVETABLE + SUPERMASSIVE CLOUD WORKSTATION", 21, 34, 340, 16, juce::Justification::left);
 
-    g.setColour (juce::Colour (0xff0b0d12));
-    g.drawHorizontalLine (44, 0.0f, bounds.getRight());
-    g.setColour (juce::Colours::white.withAlpha (0.05f));
-    g.drawHorizontalLine (45, 0.0f, bounds.getRight());
+    // Output Stereo Meters (Top Right)
+    float lvlL = juce::jlimit (0.0f, 1.0f, audioProcessor.outLevelL.load (std::memory_order_relaxed) * 2.4f);
+    float lvlR = juce::jlimit (0.0f, 1.0f, audioProcessor.outLevelR.load (std::memory_order_relaxed) * 2.4f);
 
-    auto drawEngravedDivider = [&] (int x, int topY, int bottomY) {
-        g.setColour (juce::Colour (0xff0a0c10));
-        g.drawVerticalLine (x, static_cast<float> (topY), static_cast<float> (bottomY));
-        g.setColour (juce::Colours::white.withAlpha (0.055f));
-        g.drawVerticalLine (x + 1, static_cast<float> (topY), static_cast<float> (bottomY));
-    };
+    int meterX = getWidth() - 102;
+    g.setColour (juce::Colour (0xff18202F));
+    g.fillRoundedRectangle (static_cast<float> (meterX), 18.0f, 82.0f, 7.0f, 3.0f);
+    g.fillRoundedRectangle (static_cast<float> (meterX), 29.0f, 82.0f, 7.0f, 3.0f);
 
-    auto body = getLocalBounds().withTrimmedTop (45).reduced (16, 12);
-    body.removeFromLeft (32 + 12);
-    body.removeFromRight (36 + 12);
+    g.setColour (juce::Colour (0xff4FD1C5));
+    g.fillRoundedRectangle (static_cast<float> (meterX), 18.0f, 82.0f * lvlL, 7.0f, 3.0f);
+    g.fillRoundedRectangle (static_cast<float> (meterX), 29.0f, 82.0f * lvlR, 7.0f, 3.0f);
 
-    if (activeTab == 0)
+    // Smart Key Assist Banner
+    int activeKey = static_cast<int> (*audioProcessor.apvts.getRawParameterValue ("DRONE_KEY"));
+    bool assistOn = *audioProcessor.apvts.getRawParameterValue ("KEY_DETECT_ON") > 0.5f;
+    bool showBanner = assistOn && (detectedKeyCache >= 0 && detectedKeyCache < 12 && detectedKeyCache != activeKey);
+
+    if (showBanner)
     {
-        int deckTopY = body.getY() + 210 + 14;
-        int deckBotY = body.getBottom();
+        const std::array<juce::String, 12> noteNames { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+        juce::Rectangle<float> bannerRect (20.0f, 70.0f, static_cast<float> (getWidth() - 40), 28.0f);
+        g.setColour (juce::Colour (0xffF59E0B).withAlpha (0.15f));
+        g.fillRoundedRectangle (bannerRect, 6.0f);
+        g.setColour (juce::Colour (0xffF59E0B).withAlpha (0.65f));
+        g.drawRoundedRectangle (bannerRect, 6.0f, 1.0f);
 
-        int totalW = body.getWidth();
-        int pod1W  = static_cast<int> (totalW * 0.44f);
-        int pod2W  = static_cast<int> (totalW * 0.24f);
+        g.setFont (juce::Font (11.5f, juce::Font::bold));
+        g.setColour (juce::Colour (0xffFBBF24));
+        g.drawText ("SMART KEY ASSIST: BAND DETECTED IN KEY OF [ " + noteNames[static_cast<size_t> (detectedKeyCache)] + " ]",
+                    32, 70, 500, 28, juce::Justification::left);
+    }
 
-        int seam1X = body.getX() + pod1W + 6;
-        int seam2X = seam1X + pod2W + 12;
+    int topOffset = showBanner ? 106 : 74;
 
-        drawEngravedDivider (seam1X, deckTopY, deckBotY);
-        drawEngravedDivider (seam2X, deckTopY, deckBotY);
+    if (currentTab == 0)
+    {
+        // ======================================================================
+        // TAB 0: STAGE VIEW CARDS
+        // ======================================================================
+        g.setColour (juce::Colour (0xff101622));
+        g.fillRoundedRectangle (20.0f, static_cast<float> (topOffset), 280.0f, static_cast<float> (getHeight() - topOffset - 18), 10.0f);
+        g.setColour (juce::Colour (0xff1E2636));
+        g.drawRoundedRectangle (20.0f, static_cast<float> (topOffset), 280.0f, static_cast<float> (getHeight() - topOffset - 18), 10.0f, 1.0f);
 
-        g.setColour (juce::Colour (0xff64748b));
-        g.setFont (juce::FontOptions (9.5f, juce::Font::bold));
-        g.drawText ("DRONE SYNTHESIS", body.getX() + 4, deckTopY, pod1W - 8, 16, juce::Justification::centredLeft);
-        g.drawText ("MORPH FIELD",     seam1X + 10,     deckTopY, pod2W - 8, 16, juce::Justification::centredLeft);
-        g.drawText ("SHIMMER & SPACE", seam2X + 10,     deckTopY, 180,       16, juce::Justification::centredLeft);
+        g.setFont (juce::Font (11.0f, juce::Font::bold));
+        g.setColour (juce::Colour (0xff94A3B8));
+        g.drawText ("TONAL CENTER / DRONE KEY", 34, topOffset + 12, 240, 18, juce::Justification::left);
+
+        g.setFont (juce::Font (11.0f, juce::Font::bold));
+        g.setColour (juce::Colour (0xff94A3B8));
+        g.drawText ("2D TIMBRE & WT MORPH PAD", 316, topOffset + 2, 280, 18, juce::Justification::left);
+
+        // Right Column: Supermassive Cloud & Ambience Rack Card
+        int rightX = getWidth() - 320;
+        g.setColour (juce::Colour (0xff101622));
+        g.fillRoundedRectangle (static_cast<float> (rightX), static_cast<float> (topOffset), 300.0f, static_cast<float> (getHeight() - topOffset - 18), 10.0f);
+        g.setColour (juce::Colour (0xff1E2636));
+        g.drawRoundedRectangle (static_cast<float> (rightX), static_cast<float> (topOffset), 300.0f, static_cast<float> (getHeight() - topOffset - 18), 10.0f, 1.0f);
+
+        g.setFont (juce::Font (11.0f, juce::Font::bold));
+        g.setColour (juce::Colour (0xffA78BFA));
+        g.drawText ("VALHALLA SUPERMASSIVE CLOUD ENGINE", rightX + 16, topOffset + 12, 270, 18, juce::Justification::left);
+
+        // Band Auto-Duck Gain Reduction Meter
+        float duckVal = audioProcessor.duckMeter.load (std::memory_order_relaxed);
+        int duckBarY = getHeight() - 56;
+        g.setFont (juce::Font (9.5f, juce::Font::bold));
+        g.setColour (juce::Colour (0xffF59E0B));
+        g.drawText ("BAND REACTIVE DUCKING", rightX + 18, duckBarY - 16, 200, 14, juce::Justification::left);
+
+        g.setColour (juce::Colour (0xff18202F));
+        g.fillRoundedRectangle (static_cast<float> (rightX + 18), static_cast<float> (duckBarY), 264.0f, 8.0f, 4.0f);
+        g.setColour (juce::Colour (0xffF59E0B));
+        g.fillRoundedRectangle (static_cast<float> (rightX + 18), static_cast<float> (duckBarY), 264.0f * duckVal, 8.0f, 4.0f);
     }
     else
     {
-        int topY = body.getY();
-        int midY = topY + 235;
-        int seamX = body.getX() + static_cast<int> (body.getWidth() * 0.46f);
+        // ======================================================================
+        // TAB 1: SERUM / VITAL / SUPERMASSIVE SYNTH WORKSTATION CARDS
+        // ======================================================================
+        int cardTop = topOffset;
+        int row1H = 198;
+        int row2Top = cardTop + row1H + 10;
+        int row2H = 152;
+        int row3Top = row2Top + row2H + 10;
+        int row3H = 128;
 
-        drawEngravedDivider (seamX, topY, midY - 8);
+        // OSC A Card
+        g.setColour (juce::Colour (0xff101622));
+        g.fillRoundedRectangle (20.0f, static_cast<float> (cardTop), 494.0f, static_cast<float> (row1H), 10.0f);
+        g.setColour (juce::Colour (0xff1E2636));
+        g.drawRoundedRectangle (20.0f, static_cast<float> (cardTop), 494.0f, static_cast<float> (row1H), 10.0f, 1.0f);
+        g.setFont (juce::Font (11.0f, juce::Font::bold));
+        g.setColour (juce::Colour (0xff4FD1C5));
+        g.drawText ("OSC A // WAVETABLE & SPECTRAL WARP", 34, cardTop + 8, 280, 16, juce::Justification::left);
 
-        g.setColour (juce::Colour (0xff64748b));
-        g.setFont (juce::FontOptions (9.5f, juce::Font::bold));
-        g.drawText ("6-VOICE HARMONIC ENGINE MIXER", body.getX() + 4, topY, 260, 16, juce::Justification::centredLeft);
-        g.drawText ("OSCILLATOR, FILTER & ENVELOPE", seamX + 14,      topY, 260, 16, juce::Justification::centredLeft);
-        g.drawText ("POLYPHONIC SYNTH KEYBOARD (MIDI / CLICK TO PLAY)",
-                    body.getX() + 4, body.getBottom() - 122, 380, 16, juce::Justification::centredLeft);
+        // OSC B + Organic Air Card
+        g.setColour (juce::Colour (0xff101622));
+        g.fillRoundedRectangle (526.0f, static_cast<float> (cardTop), 494.0f, static_cast<float> (row1H), 10.0f);
+        g.setColour (juce::Colour (0xff1E2636));
+        g.drawRoundedRectangle (526.0f, static_cast<float> (cardTop), 494.0f, static_cast<float> (row1H), 10.0f, 1.0f);
+        g.setFont (juce::Font (11.0f, juce::Font::bold));
+        g.setColour (juce::Colour (0xffA78BFA));
+        g.drawText ("OSC B // HARMONIC LAYER & ORGANIC AIR", 540, cardTop + 8, 300, 16, juce::Justification::left);
+
+        // Row 2 Left: ZDF Multi-Mode Filter + Drive
+        g.setColour (juce::Colour (0xff101622));
+        g.fillRoundedRectangle (20.0f, static_cast<float> (row2Top), 494.0f, static_cast<float> (row2H), 10.0f);
+        g.setColour (juce::Colour (0xff1E2636));
+        g.drawRoundedRectangle (20.0f, static_cast<float> (row2Top), 494.0f, static_cast<float> (row2H), 10.0f, 1.0f);
+        g.setFont (juce::Font (11.0f, juce::Font::bold));
+        g.setColour (juce::Colour (0xff38BDF8));
+        g.drawText ("ZDF ANALOG MULTI-MODE FILTER & SATURATION", 34, row2Top + 8, 320, 16, juce::Justification::left);
+
+        // Row 2 Right: Dual LFO Modulation Matrix
+        g.setColour (juce::Colour (0xff101622));
+        g.fillRoundedRectangle (526.0f, static_cast<float> (row2Top), 494.0f, static_cast<float> (row2H), 10.0f);
+        g.setColour (juce::Colour (0xff1E2636));
+        g.drawRoundedRectangle (526.0f, static_cast<float> (row2Top), 494.0f, static_cast<float> (row2H), 10.0f, 1.0f);
+        g.setFont (juce::Font (11.0f, juce::Font::bold));
+        g.setColour (juce::Colour (0xffF59E0B));
+        g.drawText ("MODULATION MATRIX // LFO 1 (WT SCAN) & LFO 2 (CUTOFF)", 540, row2Top + 8, 360, 16, juce::Justification::left);
+
+        // Row 3 Left: 6-Voice Harmonic Drone Mixer
+        g.setColour (juce::Colour (0xff101622));
+        g.fillRoundedRectangle (20.0f, static_cast<float> (row3Top), 320.0f, static_cast<float> (row3H), 10.0f);
+        g.setColour (juce::Colour (0xff1E2636));
+        g.drawRoundedRectangle (20.0f, static_cast<float> (row3Top), 320.0f, static_cast<float> (row3H), 10.0f, 1.0f);
+        g.setFont (juce::Font (10.5f, juce::Font::bold));
+        g.setColour (juce::Colour (0xff4FD1C5));
+        g.drawText ("6-VOICE DRONE HARMONIC MIXER", 32, row3Top + 6, 260, 14, juce::Justification::left);
+
+        // Row 3 Middle: Global Unison, Width, Glide & ADSR
+        g.setColour (juce::Colour (0xff101622));
+        g.fillRoundedRectangle (350.0f, static_cast<float> (row3Top), 410.0f, static_cast<float> (row3H), 10.0f);
+        g.setColour (juce::Colour (0xff1E2636));
+        g.drawRoundedRectangle (350.0f, static_cast<float> (row3Top), 410.0f, static_cast<float> (row3H), 10.0f, 1.0f);
+        g.setFont (juce::Font (10.5f, juce::Font::bold));
+        g.setColour (juce::Colour (0xffA78BFA));
+        g.drawText ("7-VOICE UNISON, GLIDE & ENVELOPE", 362, row3Top + 6, 300, 14, juce::Justification::left);
+
+        // Row 3 Right: Real-Time Stereo Oscilloscope
+        juce::Rectangle<float> scopeRect (770.0f, static_cast<float> (row3Top), 250.0f, static_cast<float> (row3H));
+        g.setColour (juce::Colour (0xff101622));
+        g.fillRoundedRectangle (scopeRect, 10.0f);
+        g.setColour (juce::Colour (0xff1E2636));
+        g.drawRoundedRectangle (scopeRect, 10.0f, 1.0f);
+
+        g.setFont (juce::Font (10.5f, juce::Font::bold));
+        g.setColour (juce::Colour (0xff4FD1C5));
+        g.drawText ("MASTER SCOPE", 782, row3Top + 6, 150, 14, juce::Justification::left);
+
+        juce::Path scopePath;
+        float midY = scopeRect.getCentreY() + 8.0f;
+        float ampY = scopeRect.getHeight() * 0.34f;
+        float startX = scopeRect.getX() + 12.0f;
+        float stepX  = (scopeRect.getWidth() - 24.0f) / static_cast<float> (HaloEngineAudioProcessor::scopeSize - 1);
+
+        for (int i = 0; i < HaloEngineAudioProcessor::scopeSize; ++i)
+        {
+            float sample = audioProcessor.scopeSamples[static_cast<size_t> (i)].load (std::memory_order_relaxed);
+            float px = startX + i * stepX;
+            float py = midY - sample * ampY;
+            if (i == 0) scopePath.startNewSubPath (px, py);
+            else scopePath.lineTo (px, py);
+        }
+
+        g.setColour (juce::Colour (0xff4FD1C5).withAlpha (0.28f));
+        g.strokePath (scopePath, juce::PathStrokeType (4.0f));
+        g.setColour (juce::Colour (0xff4FD1C5));
+        g.strokePath (scopePath, juce::PathStrokeType (1.8f));
     }
 }
 
 void PluginEditor::resized()
 {
-    auto header = getLocalBounds().removeFromTop (44).reduced (20, 8);
+    // Top Header Controls
+    stageTabButton.setBounds (368, 15, 92, 30);
+    synthTabButton.setBounds (466, 15, 118, 30);
 
-    auto presetArea = header.withTrimmedLeft (135).withWidth (245);
-    prevPresetBtn.setBounds (presetArea.removeFromLeft (26));
-    presetArea.removeFromLeft (3);
-    nextPresetBtn.setBounds (presetArea.removeFromRight (26));
-    presetArea.removeFromRight (3);
-    presetNameBtn.setBounds (presetArea);
+    prevPresetButton.setBounds (596, 15, 26, 30);
+    presetSelector.setBounds   (624, 15, 174, 30);
+    nextPresetButton.setBounds (800, 15, 26, 30);
 
-    auto tabArea = header.removeFromRight (216);
-    tabMainBtn.setBounds (tabArea.removeFromLeft (104));
-    tabArea.removeFromLeft (8);
-    tabSynthBtn.setBounds (tabArea);
+    keyAssistToggle.setBounds  (834, 15, 96, 30);
+    applyKeyButton.setBounds   (getWidth() - 140, 72, 110, 24);
 
-    auto body = getLocalBounds().withTrimmedTop (45).reduced (16, 12);
+    int activeKey = static_cast<int> (*audioProcessor.apvts.getRawParameterValue ("DRONE_KEY"));
+    bool assistOn = *audioProcessor.apvts.getRawParameterValue ("KEY_DETECT_ON") > 0.5f;
+    bool showBanner = assistOn && (detectedKeyCache >= 0 && detectedKeyCache < 12 && detectedKeyCache != activeKey);
+    int topOffset = showBanner ? 106 : 74;
 
-    leftDuckMeter.setBounds (body.removeFromLeft (32));
-    body.removeFromLeft (12);
-    rightOutMeter.setBounds (body.removeFromRight (36));
-    body.removeFromRight (12);
-
-    // TAB 0: STAGE VIEW
-    auto stageBody = body;
-    auto topCanopy = stageBody.removeFromTop (210);
-    canopyDisplay.setBounds (topCanopy);
-
-    stageBody.removeFromTop (14);
-
-    int totalW = stageBody.getWidth();
-    int pod1W  = static_cast<int> (totalW * 0.44f);
-    int pod2W  = static_cast<int> (totalW * 0.24f);
-
-    auto pod1 = stageBody.removeFromLeft (pod1W).reduced (4, 0);
-    stageBody.removeFromLeft (12);
-    auto pod2 = stageBody.removeFromLeft (pod2W).reduced (4, 0);
-    stageBody.removeFromLeft (12);
-    auto pod3 = stageBody.reduced (4, 0);
-
-    pod1.removeFromTop (20);
-    pod2.removeFromTop (20);
-    pod3.removeFromTop (20);
-
-    auto pod1Right = pod1.removeFromRight (84);
-    droneLevelLabel.setBounds (pod1Right.removeFromTop (13));
-    droneLevelSlider.setBounds (pod1Right.removeFromTop (82));
-    pod1Right.removeFromTop (8);
-    droneSwitch.setBounds (pod1Right);
-
-    pod1.removeFromRight (10);
-
-    auto assistRow = pod1.removeFromBottom (28);
-    keyAssistToggle.setBounds (assistRow.removeFromRight (50));
-    assistRow.removeFromRight (6);
-    suggestKeyBtn.setBounds (assistRow);
-
-    pod1.removeFromBottom (8);
-    keybed.setBounds (pod1);
-
-    xyPad.setBounds (pod2);
-
-    prayerMacroBtn.setBounds (pod3.removeFromBottom (32));
-    pod3.removeFromBottom (8);
-
-    int kColW = pod3.getWidth() / 2;
-    int kRowH = pod3.getHeight() / 2;
-
-    auto placePodKnob = [&] (juce::Slider& s, juce::Label& l, int col, int row) {
-        auto cell = juce::Rectangle<int> (pod3.getX() + col * kColW,
-                                          pod3.getY() + row * kRowH,
-                                          kColW, kRowH).reduced (2);
-        l.setBounds (cell.removeFromTop (12));
-        s.setBounds (cell);
-    };
-
-    placePodKnob (shimmerSlider, shimmerLabel, 0, 0);
-    placePodKnob (decaySlider,   decayLabel,   1, 0);
-    placePodKnob (duckSlider,    duckLabel,    0, 1);
-    placePodKnob (mixSlider,     mixLabel,     1, 1);
-
-    // TAB 1: SYNTH & VOICING ENGINE LAB
-    auto synthBody = body;
-    auto synthBottomKeyboard = synthBody.removeFromBottom (104);
-    synthBody.removeFromBottom (22);
-
-    auto synthBottomOsc = synthBody.removeFromBottom (115);
-    synthBody.removeFromBottom (14);
-
-    oscilloscope.setBounds (synthBottomOsc);
-
-    int leftSplitW = static_cast<int> (synthBody.getWidth() * 0.46f);
-    auto faderBank = synthBody.removeFromLeft (leftSplitW).reduced (4, 0);
-    synthBody.removeFromLeft (18);
-    auto synthKnobsArea = synthBody.reduced (4, 0);
-
-    faderBank.removeFromTop (20);
-    synthKnobsArea.removeFromTop (20);
-
-    int faderW = faderBank.getWidth() / 6;
-    for (int i = 0; i < 6; ++i)
+    // ==========================================================================
+    // TAB 0: STAGE VIEW LAYOUT
+    // ==========================================================================
+    int keyGridY = topOffset + 38;
+    int btnW = 76;
+    int btnH = 44;
+    for (int i = 0; i < 12; ++i)
     {
-        auto col = juce::Rectangle<int> (faderBank.getX() + i * faderW, faderBank.getY(), faderW, faderBank.getHeight()).reduced (2);
-        voiceLabels[static_cast<size_t> (i)].setBounds (col.removeFromTop (14));
-        voiceFaders[static_cast<size_t> (i)].setBounds (col);
+        int col = i % 3;
+        int row = i / 3;
+        keyButtons[static_cast<size_t> (i)].setBounds (34 + col * (btnW + 10), keyGridY + row * (btnH + 10), btnW, btnH);
     }
 
-    int skColW = synthKnobsArea.getWidth() / 4;
-    int skRowH = synthKnobsArea.getHeight() / 2;
+    int droneBtnY = keyGridY + 4 * (btnH + 10) + 12;
+    dronePowerButton.setBounds (34, droneBtnY, 248, 38);
+    prayerMacroButton.setBounds (34, droneBtnY + 48, 248, 44);
 
-    auto placeSynthKnob = [&] (juce::Slider& s, juce::Label& l, int c, int r) {
-        auto cell = juce::Rectangle<int> (synthKnobsArea.getX() + c * skColW,
-                                          synthKnobsArea.getY() + r * skRowH,
-                                          skColW, skRowH).reduced (2);
-        l.setBounds (cell.removeFromTop (12));
-        s.setBounds (cell);
+    int rightX = getWidth() - 320;
+    int padW = rightX - 316 - 16;
+    morphPad.setBounds (316, topOffset + 22, padW, getHeight() - topOffset - 40);
+
+    // Right Column: 3x3 Supermassive + Ambience Knob Grid
+    int kW = 84;
+    int kH = 74;
+    int r1Y = topOffset + 42;
+    int r2Y = r1Y + kH + 22;
+    int r3Y = r2Y + kH + 22;
+
+    auto placeKnob = [] (juce::Slider& s, juce::Label& l, int x, int y, int w, int h)
+    {
+        l.setBounds (x, y, w, 14);
+        s.setBounds (x, y + 14, w, h);
     };
 
-    placeSynthKnob (detuneSlider,  detuneLabel,  0, 0);
-    placeSynthKnob (widthSlider,   widthLabel,   1, 0);
-    placeSynthKnob (resSlider,     resLabel,     2, 0);
-    placeSynthKnob (driveSlider,   driveLabel,   3, 0);
+    placeKnob (droneLevelSlider, droneLevelLabel, rightX + 16,  r1Y, kW, kH);
+    placeKnob (shimmerSlider,    shimmerLabel,    rightX + 108, r1Y, kW, kH);
+    placeKnob (decaySlider,      decayLabel,      rightX + 200, r1Y, kW, kH);
 
-    placeSynthKnob (glideSlider,   glideLabel,   0, 1);
-    placeSynthKnob (attackSlider,  attackLabel,  1, 1);
-    placeSynthKnob (releaseSlider, releaseLabel, 2, 1);
+    placeKnob (spaceWarpSlider,  spaceWarpLabel,  rightX + 16,  r2Y, kW, kH);
+    placeKnob (spaceModSlider,   spaceModLabel,   rightX + 108, r2Y, kW, kH);
+    placeKnob (spaceDampSlider,  spaceDampLabel,  rightX + 200, r2Y, kW, kH);
 
-    synthKeyboard.setBounds (synthBottomKeyboard);
+    placeKnob (autoDuckSlider,   autoDuckLabel,   rightX + 48,  r3Y, kW, kH);
+    placeKnob (mixSlider,        mixLabel,        rightX + 168, r3Y, kW, kH);
+
+    // ==========================================================================
+    // TAB 1: SERUM / VITAL / SUPERMASSIVE SYNTH ENGINE LAYOUT
+    // ==========================================================================
+    int cardTop = topOffset;
+    int row1H = 198;
+    int row2Top = cardTop + row1H + 10;
+    int row2H = 152;
+    int row3Top = row2Top + row2H + 10;
+    int row3H = 128;
+
+    // OSC A Card
+    oscATableBox.setBounds    (34,  cardTop + 30, 210, 26);
+    oscAWarpModeBox.setBounds (34,  cardTop + 62, 210, 26);
+    oscAPreview.setBounds     (34,  cardTop + 96, 210, 88);
+
+    placeKnob (oscAPosSlider,   oscAPosLabel,   254, cardTop + 46, 78, 86);
+    placeKnob (oscAWarpSlider,  oscAWarpLabel,  338, cardTop + 46, 78, 86);
+    placeKnob (oscALevelSlider, oscALevelLabel, 422, cardTop + 46, 78, 86);
+
+    // OSC B + Organic Air Card
+    oscBTableBox.setBounds (540, cardTop + 30, 210, 26);
+    oscBPreview.setBounds  (540, cardTop + 66, 210, 118);
+
+    placeKnob (oscBPosSlider,   oscBPosLabel,   758, cardTop + 34, 62, 68);
+    placeKnob (oscBOctSlider,   oscBOctLabel,   824, cardTop + 34, 62, 68);
+    placeKnob (oscBLevelSlider, oscBLevelLabel, 890, cardTop + 34, 62, 68);
+    placeKnob (airNoiseSlider,  airNoiseLabel,  952, cardTop + 34, 62, 68);
+
+    // Row 2 Left: ZDF Filter + Drive
+    filterModeBox.setBounds (34, row2Top + 32, 175, 28);
+    placeKnob (filterResSlider, filterResLabel, 224, row2Top + 32, 86, 86);
+    placeKnob (filterEnvSlider, filterEnvLabel, 318, row2Top + 32, 86, 86);
+    placeKnob (driveSlider,     driveLabel,     412, row2Top + 32, 86, 86);
+
+    // Row 2 Right: LFO 1 & LFO 2
+    lfo1ShapeBox.setBounds (540, row2Top + 32, 115, 26);
+    placeKnob (lfo1RateSlider, lfo1RateLabel, 662, row2Top + 30, 56, 68);
+    placeKnob (lfo1WtSlider,   lfo1WtLabel,   720, row2Top + 30, 56, 68);
+
+    lfo2ShapeBox.setBounds (784, row2Top + 32, 115, 26);
+    placeKnob (lfo2RateSlider, lfo2RateLabel, 904, row2Top + 30, 56, 68);
+    placeKnob (lfo2CutSlider,  lfo2CutLabel,  960, row2Top + 30, 56, 68);
+
+    // Row 3 Left: 6-Voice Harmonic Drone Mixer Faders
+    for (size_t i = 0; i < 6; ++i)
+    {
+        int fx = 32 + static_cast<int> (i) * 48;
+        voiceLabels[i].setBounds (fx, row3Top + 24, 42, 12);
+        voiceFaders[i].setBounds (fx + 7, row3Top + 38, 28, row3H - 44);
+    }
+
+    // Row 3 Middle: Global Unison, Width, Glide & ADSR
+    int gStartX = 360;
+    int gW = 76;
+    placeKnob (detuneSlider,  detuneLabel,  gStartX + gW * 0, row3Top + 26, gW, 74);
+    placeKnob (widthSlider,   widthLabel,   gStartX + gW * 1, row3Top + 26, gW, 74);
+    placeKnob (glideSlider,   glideLabel,   gStartX + gW * 2, row3Top + 26, gW, 74);
+    placeKnob (attackSlider,  attackLabel,  gStartX + gW * 3, row3Top + 26, gW, 74);
+    placeKnob (releaseSlider, releaseLabel, gStartX + gW * 4, row3Top + 26, gW, 74);
+
+    // Playable 2-Octave Keyboard along bottom
+    int kbY = row3Top + row3H + 10;
+    midiKeyboard.setBounds (20, kbY, getWidth() - 40, getHeight() - kbY - 12);
 }

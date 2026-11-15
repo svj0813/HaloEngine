@@ -1,6 +1,8 @@
 #pragma once
 #include <JuceHeader.h>
 #include "DSP/SupermassiveTank.h"
+#include "DSP/WavetableOsc.h"
+#include "DSP/ModFilterEngine.h"
 #include <array>
 #include <vector>
 #include <atomic>
@@ -38,14 +40,18 @@ public:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
     juce::MidiKeyboardState keyboardState;
+    WavetableBank wavetableBank;
 
-    // Thread-safe UI telemetry & key detection atomics
     std::atomic<int>   suggestedKeyIndex { -1 };
     std::atomic<float> outLevelL { 0.0f };
     std::atomic<float> outLevelR { 0.0f };
     std::atomic<float> duckMeter { 0.0f };
 
-    // Live oscilloscope ring buffer for Synth Tab
+    // Live telemetry for Synth Tab UI (Modulated WT Positions & Oscilloscope)
+    std::atomic<float> liveOscAPos { 0.45f };
+    std::atomic<float> liveOscBPos { 0.55f };
+    std::atomic<float> liveFilterNorm { 0.52f };
+
     static constexpr int scopeSize = 128;
     std::array<std::atomic<float>, scopeSize> scopeSamples {};
 
@@ -53,47 +59,59 @@ private:
     void updateDroneFrequencies (int keyIndex, bool snapImmediately);
     void analyzeIncomingPitch();
 
-    static inline float polyBlep (double t, double dt) noexcept
+    static inline double applySpectralWarp (double phase, int warpMode, float warpAmt, float modSignal) noexcept
     {
-        if (t < dt)
+        if (warpAmt <= 0.001f || warpMode == 0)
+            return phase;
+
+        if (warpMode == 1)
         {
-            t /= dt;
-            return static_cast<float> (t + t - t * t - 1.0);
+            double pivot = 0.5 - warpAmt * 0.42;
+            if (phase < pivot)
+                return 0.5 * (phase / pivot);
+            return 0.5 + 0.5 * ((phase - pivot) / (1.0 - pivot));
         }
-        if (t > 1.0 - dt)
+        if (warpMode == 2)
         {
-            t = (t - 1.0) / dt;
-            return static_cast<float> (t * t + t + t + 1.0);
+            double syncMult = 1.0 + warpAmt * 2.5;
+            double synced = phase * syncMult;
+            return synced - std::floor (synced);
         }
-        return 0.0f;
+        double fmPhase = phase + static_cast<double> (modSignal * warpAmt * 0.45f);
+        return fmPhase - std::floor (fmPhase);
     }
 
     double currentSampleRate = 44100.0;
     int lastKeyIndex = -1;
     float lastGlideSec = 0.80f;
 
-    static constexpr int numVoices = 6;
-    static constexpr int unisonCount = 7;
+    static constexpr size_t numVoices = 6;
+    static constexpr size_t unisonCount = 7;
 
-    std::array<std::array<double, unisonCount>, numVoices> dronePhases {};
+    std::array<std::array<double, unisonCount>, numVoices> dronePhasesA {};
+    std::array<std::array<double, unisonCount>, numVoices> dronePhasesB {};
     std::array<double, numVoices> droneSubPhases {};
     std::array<juce::SmoothedValue<float, juce::ValueSmoothingTypes::Multiplicative>, numVoices> voiceFreqSmoothed;
 
     struct MidiVoice
     {
-        bool active = false;
-        bool releasing = false;
         int midiNote = -1;
         float freq = 261.63f;
-        float env = 0.0f;
         double subPhase = 0.0;
-        std::array<double, unisonCount> phases {};
+        std::array<double, unisonCount> phasesA {};
+        std::array<double, unisonCount> phasesB {};
+        HaloADSR env1Amp;
+        HaloADSR env2Mod;
     };
-    static constexpr int maxMidiVoices = 8;
+    static constexpr size_t maxMidiVoices = 8;
     std::array<MidiVoice, maxMidiVoices> midiVoices;
 
-    juce::dsp::StateVariableTPTFilter<float> droneFilterL1, droneFilterL2;
-    juce::dsp::StateVariableTPTFilter<float> droneFilterR1, droneFilterR2;
+    // Phase 3: Modulation LFOs & ZDF Multi-Mode Filter
+    HaloLFO lfo1 { 101 };
+    HaloLFO lfo2 { 202 };
+    HaloMultiFilter mainMultiFilter;
+
+    OrganicAirGenerator organicAir;
     juce::dsp::StateVariableTPTFilter<float> dcBlockL, dcBlockR;
 
     juce::SmoothedValue<float> droneGainSmoothed;
@@ -101,18 +119,14 @@ private:
     juce::SmoothedValue<float> morphXSmoothed;
     juce::SmoothedValue<float> morphYSmoothed;
 
-    // 4-Tap Stereo BBD Ensemble Chorus
     std::vector<float> chorusBufL, chorusBufR;
     int chorusWriteIdx = 0;
     double chorusLfoPhase = 0.0;
 
-    // Phase 1: Valhalla Supermassive-Class 8-Channel Modulated FDN Space Engine
     SupermassiveTank supermassiveTank;
 
-    // Reactive Auto-Ducking Envelope Follower
     float inputEnvelope = 0.0f;
 
-    // Non-Intrusive Autocorrelation Pitch / Key Detector
     std::vector<float> detectBuffer;
     int detectWritePos = 0;
     int candidateKey = -1;
