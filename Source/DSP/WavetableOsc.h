@@ -57,17 +57,19 @@ private:
                 auto& frame = tables[static_cast<size_t> (t)][static_cast<size_t> (f)];
                 frame.fill (0.0f);
 
-                const int maxHarmonics = 48;
+                const int maxHarmonics = 44;
                 for (int h = 1; h <= maxHarmonics; ++h)
                 {
                     float amp = 0.0f;
                     double phaseOffset = 0.0;
+                    float fh = static_cast<float> (h);
 
                     if (t == 0)
                     {
-                        float triAmp = (h % 2 == 1) ? (1.0f / static_cast<float> (h * h)) : 0.0f;
-                        float sawAmp = 1.0f / static_cast<float> (h);
+                        // 01: Pure Sine -> Velvet Triangle -> Warm Analog Saw
                         float sineAmp = (h == 1) ? 1.0f : 0.0f;
+                        float triAmp  = (h % 2 == 1) ? (1.0f / (fh * fh)) : 0.0f;
+                        float sawAmp  = 1.0f / std::pow (fh, 1.05f);
 
                         if (morph < 0.5f)
                         {
@@ -83,34 +85,50 @@ private:
                     }
                     else if (t == 1)
                     {
-                        float f1 = 2.5f + morph * 4.5f;
-                        float f2 = 6.0f + morph * 12.0f;
-                        float fh = static_cast<float> (h);
-                        float g1 = std::exp (-std::pow ((fh - f1) / 1.8f, 2.0f));
-                        float g2 = 0.72f * std::exp (-std::pow ((fh - f2) / 2.6f, 2.0f));
-                        amp = (1.0f / std::pow (fh, 0.75f)) * (0.28f + g1 * 1.4f + g2 * 1.2f);
+                        // 02: Expressive Triple-Formant Vocal Choir (Oo -> Ah -> Ee)
+                        float f1 = 2.2f + morph * 3.8f;
+                        float f2 = 5.0f + morph * 13.5f;
+                        float f3 = 11.0f + morph * 10.0f;
+                        float g1 = 1.6f * std::exp (-std::pow ((fh - f1) / 1.15f, 2.0f));
+                        float g2 = 1.35f * std::exp (-std::pow ((fh - f2) / 1.65f, 2.0f));
+                        float g3 = 0.85f * std::exp (-std::pow ((fh - f3) / 2.20f, 2.0f));
+                        amp = (1.0f / std::pow (fh, 0.65f)) * (0.08f + g1 + g2 + g3);
                     }
                     else if (t == 2)
                     {
-                        float fh = static_cast<float> (h);
-                        bool isBellPartial = (h == 1 || h == 2 || h == 3 || h == 4 || h == 6 || h == 9 || h == 12 || h == 16);
-                        float shimmerBoost = (h > 4) ? (0.2f + morph * 1.3f) : 1.0f;
-                        amp = isBellPartial ? (shimmerBoost / std::pow (fh, 0.65f)) : (0.04f * morph / fh);
+                        // 03: Crystalline Glass Bell & Celestial Chime (Pure sparse partials, zero buzz)
+                        bool isChime = (h == 1 || h == 2 || h == 3 || h == 4 || h == 6 || h == 8 || h == 12 || h == 16);
+                        if (isChime)
+                        {
+                            float hiWeight = (h >= 3) ? (0.18f + morph * 1.45f) : (1.0f - morph * 0.25f);
+                            amp = hiWeight / std::pow (fh, 0.72f);
+                        }
+                        else
+                        {
+                            amp = 0.0f;
+                        }
+                        phaseOffset = (h % 3 == 0) ? 0.17 : 0.0;
                     }
                     else if (t == 3)
                     {
-                        float duty = 0.50f - morph * 0.38f;
-                        amp = std::abs (std::sin (juce::MathConstants<float>::pi * h * duty)) / static_cast<float> (h);
+                        // 04: Lush JP-8000 Phase-Dispersed Supersaw / PWM Ensemble
+                        float duty = 0.50f - morph * 0.40f;
+                        float pwm = std::abs (std::sin (juce::MathConstants<float>::pi * fh * duty)) / fh;
+                        float saw = 1.0f / std::pow (fh, 0.90f);
+                        amp = pwm * (1.0f - morph * 0.5f) + saw * (morph * 0.65f);
+                        phaseOffset = std::sin (fh * 1.6180339) * 0.35;
                     }
                     else
                     {
-                        float fh = static_cast<float> (h);
-                        float bowBridgeNotch = std::abs (std::sin (fh * (0.35f + morph * 0.45f)));
-                        amp = (1.0f / std::pow (fh, 0.85f)) * (0.35f + 0.85f * bowBridgeNotch);
+                        // 05: Bowed Cello & Chamber String Ensemble
+                        float bodyRes = 1.2f * std::exp (-std::pow ((fh - (3.0f + morph * 2.0f)) / 1.8f, 2.0f));
+                        float bridgeNotch = std::abs (std::sin (fh * (0.28f + morph * 0.52f)));
+                        amp = (1.0f / std::pow (fh, 0.92f)) * (0.22f + bodyRes + 0.95f * bridgeNotch);
+                        phaseOffset = (h % 2 == 0) ? 0.12 : 0.0;
                     }
 
-                    float lanczos = std::sin (juce::MathConstants<float>::pi * h / (maxHarmonics + 1))
-                                  / (juce::MathConstants<float>::pi * h / (maxHarmonics + 1));
+                    float lanczos = std::sin (juce::MathConstants<float>::pi * fh / (maxHarmonics + 1))
+                                  / (juce::MathConstants<float>::pi * fh / (maxHarmonics + 1));
                     amp *= lanczos;
 
                     for (int i = 0; i < tableSize; ++i)
@@ -120,13 +138,18 @@ private:
                     }
                 }
 
+                // RMS-balanced normalization so pure tones and bright chimes feel equally present
+                double sumSq = 0.0;
                 float maxPeak = 0.001f;
                 for (float s : frame)
+                {
+                    sumSq += static_cast<double> (s * s);
                     maxPeak = juce::jmax (maxPeak, std::abs (s));
-
-                float normScale = 0.95f / maxPeak;
+                }
+                float rms = static_cast<float> (std::sqrt (sumSq / static_cast<double> (tableSize)));
+                float targetScale = juce::jmin (0.95f / maxPeak, 0.38f / juce::jmax (0.05f, rms));
                 for (float& s : frame)
-                    s *= normScale;
+                    s *= targetScale;
             }
         }
     }
@@ -146,10 +169,10 @@ public:
         bpFilterR.prepare (spec);
         bpFilterL.setType (juce::dsp::StateVariableTPTFilterType::bandpass);
         bpFilterR.setType (juce::dsp::StateVariableTPTFilterType::bandpass);
-        bpFilterL.setCutoffFrequency (2800.0f);
-        bpFilterR.setCutoffFrequency (3100.0f);
-        bpFilterL.setResonance (0.85f);
-        bpFilterR.setResonance (0.85f);
+        bpFilterL.setCutoffFrequency (2600.0f);
+        bpFilterR.setCutoffFrequency (2900.0f);
+        bpFilterL.setResonance (0.90f);
+        bpFilterR.setResonance (0.90f);
     }
 
     inline void processSample (float& outL, float& outR, float brightness, float amount) noexcept
@@ -174,12 +197,12 @@ public:
         b2R = 0.57000f * b2R + whiteR * 1.0526913f;
         float pinkR = (b0R + b1R + b2R + whiteR * 0.1848f) * 0.18f;
 
-        float airFreq = 1400.0f + brightness * 4200.0f;
+        float airFreq = 1300.0f + brightness * 3600.0f;
         bpFilterL.setCutoffFrequency (airFreq);
         bpFilterR.setCutoffFrequency (airFreq * 1.08f);
 
-        outL = bpFilterL.processSample (0, pinkL) * amount * 0.35f;
-        outR = bpFilterR.processSample (0, pinkR) * amount * 0.35f;
+        outL = bpFilterL.processSample (0, pinkL) * amount * 0.30f;
+        outR = bpFilterR.processSample (0, pinkR) * amount * 0.30f;
     }
 
 private:
