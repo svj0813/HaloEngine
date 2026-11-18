@@ -38,6 +38,7 @@ HaloEngineAudioProcessor::~HaloEngineAudioProcessor() {}
 juce::AudioProcessorValueTreeState::ParameterLayout HaloEngineAudioProcessor::createParameterLayout()
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
+    params.push_back (std::make_unique<juce::AudioParameterFloat> ("MASTER_VOL", "Master Volume", 0.0f, 1.5f, 0.85f));
 
     juce::StringArray keys { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
     params.push_back (std::make_unique<juce::AudioParameterChoice> ("DRONE_KEY", "Drone Key", keys, 0));
@@ -331,6 +332,7 @@ void HaloEngineAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 
     int   keyIndex    = static_cast<int> (*apvts.getRawParameterValue ("DRONE_KEY"));
     bool  droneActive = *apvts.getRawParameterValue ("DRONE_ON") > 0.5f;
+    float masterVol   = *apvts.getRawParameterValue ("MASTER_VOL");
     float droneLevel  = *apvts.getRawParameterValue ("DRONE_LEVEL");
     float morphX      = *apvts.getRawParameterValue ("MORPH_X");
     float morphY      = *apvts.getRawParameterValue ("MORPH_Y");
@@ -658,8 +660,8 @@ void HaloEngineAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
         float duckGain = 1.0f - juce::jlimit (0.0f, 0.72f, inputEnvelope * autoDuck * 4.5f);
         float finalWetMix = juce::jlimit (0.0f, 1.0f, ambMix + 0.25f * prayerVal) * duckGain;
 
-        outL[s] = dryL + chorusedL * 0.72f + wetL * finalWetMix * 1.25f;
-        outR[s] = dryR + chorusedR * 0.72f + wetR * finalWetMix * 1.25f;
+        outL[s] = (dryL + chorusedL * 0.72f + wetL * finalWetMix * 1.25f) * masterVol;
+        outR[s] = (dryR + chorusedR * 0.72f + wetR * finalWetMix * 1.25f) * masterVol;
     }
 
     liveOscAPos.store (lastModPosA, std::memory_order_relaxed);
