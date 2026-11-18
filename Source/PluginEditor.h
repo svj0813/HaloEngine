@@ -2,6 +2,7 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "DSP/PresetBank.h"
+#include "DSP/SetlistManager.h"
 #include <array>
 
 class HaloLookAndFeel : public juce::LookAndFeel_V4
@@ -268,10 +269,14 @@ public:
 private:
     void timerCallback() override;
     void setActiveTab (int tabIndex);
+    void refreshPresetList (int selectIndex);
     void loadPresetIndex (int newIndex);
+    void triggerSavePresetDialog();
+    void triggerAddSetlistSlotDialog();
 
     HaloEngineAudioProcessor& audioProcessor;
     HaloLookAndFeel customLookAndFeel;
+    HaloSetlistManager setlistManager;
 
     int currentTab = 0;
     int currentPresetIdx = 0;
@@ -282,6 +287,8 @@ private:
     juce::TextButton prevPresetButton { "<" };
     juce::TextButton nextPresetButton { ">" };
     juce::ComboBox   presetSelector;
+    juce::TextButton initPresetButton { "INIT" };
+    juce::TextButton savePresetButton { "SAVE" };
 
     std::array<juce::TextButton, 12> globalKeyButtons;
     std::array<juce::TextButton, 3>  octaveButtons;
@@ -292,6 +299,10 @@ private:
 
     // TAB 0: STAGE VIEW
     MorphPadComponent morphPad;
+    juce::TextButton prevSongButton { "< PREV SONG" };
+    juce::TextButton nextSongButton { "NEXT SONG >" };
+    juce::TextButton addSongButton { "+ PIN SONG" };
+    juce::TextButton removeSongButton { "DEL" };
 
     juce::Slider droneLevelSlider, shimmerSlider, decaySlider, mixSlider;
     juce::Slider spaceWarpSlider, spaceModSlider, spaceDampSlider;

@@ -25,11 +25,15 @@ PluginEditor::PluginEditor (HaloEngineAudioProcessor& p)
     addAndMakeVisible (prevPresetButton);
     addAndMakeVisible (nextPresetButton);
     addAndMakeVisible (presetSelector);
+    addAndMakeVisible (initPresetButton);
+    addAndMakeVisible (savePresetButton);
 
-    const auto& presets = HaloPresetBank::getPresets();
-    for (int i = 0; i < static_cast<int> (presets.size()); ++i)
-        presetSelector.addItem (presets[static_cast<size_t> (i)].name, i + 1);
-    presetSelector.setSelectedId (1, juce::dontSendNotification);
+    initPresetButton.setColour (juce::TextButton::buttonColourId, juce::Colour (0xff1E293B));
+    initPresetButton.setColour (juce::TextButton::textColourOffId, juce::Colour (0xff38BDF8));
+    savePresetButton.setColour (juce::TextButton::buttonColourId, juce::Colour (0xff1E293B));
+    savePresetButton.setColour (juce::TextButton::textColourOffId, juce::Colour (0xff4FD1C5));
+
+    refreshPresetList (0);
     presetSelector.onChange = [this]
     {
         int sel = presetSelector.getSelectedId() - 1;
@@ -39,6 +43,13 @@ PluginEditor::PluginEditor (HaloEngineAudioProcessor& p)
 
     prevPresetButton.onClick = [this] { loadPresetIndex (currentPresetIdx - 1); };
     nextPresetButton.onClick = [this] { loadPresetIndex (currentPresetIdx + 1); };
+    initPresetButton.onClick = [this]
+    {
+        HaloPresetBank::loadInitSawPatch (audioProcessor.apvts);
+        presetSelector.setText ("INIT // RAW SAW", juce::dontSendNotification);
+        morphPad.repaint();
+    };
+    savePresetButton.onClick = [this] { triggerSavePresetDialog(); };
 
     // ==========================================================================
     // GLOBAL ROOT KEY + OCTAVE BAR (ALWAYS ON SCREEN)
@@ -98,6 +109,28 @@ PluginEditor::PluginEditor (HaloEngineAudioProcessor& p)
     // TAB 0: STAGE VIEW CONTROLS
     // ==========================================================================
     addAndMakeVisible (morphPad);
+    addAndMakeVisible (prevSongButton);
+    addAndMakeVisible (nextSongButton);
+    addAndMakeVisible (addSongButton);
+    addAndMakeVisible (removeSongButton);
+    addSongButton.setColour (juce::TextButton::textColourOffId, juce::Colour (0xff4FD1C5));
+    removeSongButton.setColour (juce::TextButton::textColourOffId, juce::Colour (0xffF87171));
+    prevSongButton.onClick = [this]
+    {
+        int pIdx = setlistManager.triggerSlot (setlistManager.getCurrentSlotIndex() - 1, audioProcessor.apvts);
+        currentPresetIdx = pIdx;
+        presetSelector.setSelectedId (pIdx + 1, juce::dontSendNotification);
+        repaint();
+    };
+    nextSongButton.onClick = [this]
+    {
+        int pIdx = setlistManager.triggerSlot (setlistManager.getCurrentSlotIndex() + 1, audioProcessor.apvts);
+        currentPresetIdx = pIdx;
+        presetSelector.setSelectedId (pIdx + 1, juce::dontSendNotification);
+        repaint();
+    };
+    addSongButton.onClick    = [this] { triggerAddSetlistSlotDialog(); };
+    removeSongButton.onClick = [this] { setlistManager.removeCurrentSlot(); repaint(); };
 
     configureKnob (droneLevelSlider, droneLevelLabel, "DRONE LVL",   juce::Colour (0xff4FD1C5));
     configureKnob (shimmerSlider,    shimmerLabel,    "SHIMMER OCT", juce::Colour (0xffA78BFA));
@@ -251,16 +284,63 @@ PluginEditor::~PluginEditor()
     setLookAndFeel (nullptr);
 }
 
+void PluginEditor::refreshPresetList (int selectIndex)
+{
+    presetSelector.clear (juce::dontSendNotification);
+    const auto all = HaloPresetBank::getAllPresets();
+    for (int i = 0; i < static_cast<int> (all.size()); ++i)
+        presetSelector.addItem (all[static_cast<size_t> (i)].name, i + 1);
+    if (! all.empty())
+    {
+        currentPresetIdx = juce::jlimit (0, static_cast<int> (all.size()) - 1, selectIndex);
+        presetSelector.setSelectedId (currentPresetIdx + 1, juce::dontSendNotification);
+    }
+}
+
 void PluginEditor::loadPresetIndex (int newIndex)
 {
-    const auto& presets = HaloPresetBank::getPresets();
-    int count = static_cast<int> (presets.size());
+    const auto all = HaloPresetBank::getAllPresets();
+    int count = static_cast<int> (all.size());
     if (count == 0) return;
 
     currentPresetIdx = ((newIndex % count) + count) % count;
     presetSelector.setSelectedId (currentPresetIdx + 1, juce::dontSendNotification);
     HaloPresetBank::applyPreset (audioProcessor.apvts, currentPresetIdx);
     morphPad.repaint();
+}
+
+void PluginEditor::triggerSavePresetDialog()
+{
+    auto* aw = new juce::AlertWindow ("SAVE USER PRESET", "Enter a name to save this patch to your User Bank:", juce::MessageBoxIconType::NoIcon);
+    aw->addTextEditor ("presetName", "My Halo Patch", "Preset Name:");
+    aw->addButton ("SAVE", 1, juce::KeyPress (juce::KeyPress::returnKey));
+    aw->addButton ("CANCEL", 0, juce::KeyPress (juce::KeyPress::escapeKey));
+    aw->enterModalState (true, juce::ModalCallbackFunction::create ([this, aw] (int result)
+    {
+        std::unique_ptr<juce::AlertWindow> cleaner (aw);
+        if (result == 1 && HaloPresetBank::saveUserPreset (aw->getTextEditorContents ("presetName"), audioProcessor.apvts))
+            refreshPresetList (static_cast<int> (HaloPresetBank::getAllPresets().size()) - 1);
+    }), false);
+}
+
+void PluginEditor::triggerAddSetlistSlotDialog()
+{
+    auto* aw = new juce::AlertWindow ("PIN SONG TO LIVE SETLIST", "Pins current Preset, Root Key & Octave to your live setlist:", juce::MessageBoxIconType::NoIcon);
+    int nextNum = static_cast<int> (setlistManager.getSlots().size()) + 1;
+    aw->addTextEditor ("songTitle", "0" + juce::String (nextNum) + " // NEW SONG", "Song Title:");
+    aw->addButton ("PIN TO SET", 1, juce::KeyPress (juce::KeyPress::returnKey));
+    aw->addButton ("CANCEL", 0, juce::KeyPress (juce::KeyPress::escapeKey));
+    aw->enterModalState (true, juce::ModalCallbackFunction::create ([this, aw] (int result)
+    {
+        std::unique_ptr<juce::AlertWindow> cleaner (aw);
+        if (result == 1)
+        {
+            int keyIdx = static_cast<int> (*audioProcessor.apvts.getRawParameterValue ("DRONE_KEY"));
+            int octIdx = static_cast<int> (*audioProcessor.apvts.getRawParameterValue ("DRONE_OCTAVE"));
+            setlistManager.addSlot (aw->getTextEditorContents ("songTitle"), currentPresetIdx, keyIdx, octIdx);
+            repaint();
+        }
+    }), false);
 }
 
 void PluginEditor::setActiveTab (int tabIndex)
@@ -279,6 +359,10 @@ void PluginEditor::setActiveTab (int tabIndex)
 
     bool isStage = (currentTab == 0);
     morphPad.setVisible (isStage);
+    prevSongButton.setVisible (isStage);
+    nextSongButton.setVisible (isStage);
+    addSongButton.setVisible (isStage);
+    removeSongButton.setVisible (isStage);
 
     for (auto* c : std::initializer_list<juce::Component*> {
         &droneLevelSlider, &shimmerSlider, &decaySlider, &mixSlider,
@@ -431,11 +515,35 @@ void PluginEditor::paint (juce::Graphics& g)
         g.setColour (juce::Colour (0xff94A3B8));
         g.drawText ("2D TIMBRE & SHIMMER MORPH PAD", 20, topOffset, 260, 16, juce::Justification::left);
 
+        int setlistH = 44;
+        int mainAreaBottom = getHeight() - setlistH - 18;
         int rightX = getWidth() - 356;
         g.setColour (juce::Colour (0xff101622));
-        g.fillRoundedRectangle (static_cast<float> (rightX), static_cast<float> (topOffset), 340.0f, static_cast<float> (getHeight() - topOffset - 14), 8.0f);
+        g.fillRoundedRectangle (static_cast<float> (rightX), static_cast<float> (topOffset), 340.0f, static_cast<float> (mainAreaBottom - topOffset), 8.0f);
         g.setColour (juce::Colour (0xff1E2636));
-        g.drawRoundedRectangle (static_cast<float> (rightX), static_cast<float> (topOffset), 340.0f, static_cast<float> (getHeight() - topOffset - 14), 8.0f, 1.0f);
+        g.drawRoundedRectangle (static_cast<float> (rightX), static_cast<float> (topOffset), 340.0f, static_cast<float> (mainAreaBottom - topOffset), 8.0f, 1.0f);
+
+        int barY = getHeight() - setlistH - 10;
+        g.setColour (juce::Colour (0xff101622));
+        g.fillRoundedRectangle (16.0f, static_cast<float> (barY), static_cast<float> (getWidth() - 32), static_cast<float> (setlistH), 8.0f);
+        g.setColour (juce::Colour (0xff273244));
+        g.drawRoundedRectangle (16.0f, static_cast<float> (barY), static_cast<float> (getWidth() - 32), static_cast<float> (setlistH), 8.0f, 1.0f);
+
+        const auto& slots = setlistManager.getSlots();
+        int curIdx = setlistManager.getCurrentSlotIndex();
+        if (! slots.empty() && curIdx >= 0 && curIdx < static_cast<int> (slots.size()))
+        {
+            const std::array<juce::String, 12> noteNames { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+            const std::array<juce::String, 3> octNames   { "LOW", "MID", "HIGH" };
+            const auto& slot = slots[static_cast<size_t> (curIdx)];
+            juce::String badge = "SETLIST [" + juce::String (curIdx + 1) + "/" + juce::String (slots.size()) + "]   "
+                               + slot.songTitle + "   |   KEY: "
+                               + noteNames[static_cast<size_t> (juce::jlimit (0, 11, slot.keyIndex))] + " ("
+                               + octNames[static_cast<size_t> (juce::jlimit (0, 2, slot.octaveIndex))] + ")";
+            g.setFont (juce::FontOptions (11.5f, juce::Font::bold));
+            g.setColour (juce::Colour (0xffF8FAFC));
+            g.drawText (badge, 232, barY, 446, setlistH, juce::Justification::centred);
+        }
 
         g.setFont (juce::FontOptions (11.0f, juce::Font::bold));
         g.setColour (juce::Colour (0xffA78BFA));
@@ -543,12 +651,14 @@ void PluginEditor::paint (juce::Graphics& g)
 void PluginEditor::resized()
 {
     // Top Header Controls
-    stageTabButton.setBounds   (296, 11, 86, 28);
-    synthTabButton.setBounds   (388, 11, 112, 28);
+    stageTabButton.setBounds   (268, 11, 74, 28);
+    synthTabButton.setBounds   (348, 11, 102, 28);
 
-    prevPresetButton.setBounds (514, 11, 24, 28);
-    presetSelector.setBounds   (540, 11, 186, 28);
-    nextPresetButton.setBounds (728, 11, 24, 28);
+    prevPresetButton.setBounds (462, 11, 22, 28);
+    presetSelector.setBounds   (486, 11, 198, 28);
+    nextPresetButton.setBounds (686, 11, 22, 28);
+    initPresetButton.setBounds (716, 11, 48, 28);
+    savePresetButton.setBounds (768, 11, 52, 28);
 
     // Always-Visible Global Root Key + Octave Bar (y = 56..92)
     int kx = 92;
@@ -576,14 +686,23 @@ void PluginEditor::resized()
     // ==========================================================================
     // TAB 0: STAGE VIEW LAYOUT
     // ==========================================================================
+    int setlistH = 44;
+    int barY = getHeight() - setlistH - 10;
+    int mainAreaBottom = barY - 8;
+
     int rightX = getWidth() - 356;
-    morphPad.setBounds (16, topOffset + 20, rightX - 28, getHeight() - topOffset - 34);
+    morphPad.setBounds (16, topOffset + 20, rightX - 28, mainAreaBottom - (topOffset + 20));
 
     int kW = 98;
-    int kH = 92;
-    int r1Y = topOffset + 46;
-    int r2Y = r1Y + kH + 30;
-    int r3Y = r2Y + kH + 30;
+    int kH = 78;
+    int r1Y = topOffset + 34;
+    int r2Y = r1Y + kH + 22;
+    int r3Y = r2Y + kH + 22;
+
+    prevSongButton.setBounds   (26,  barY + 8, 98, 28);
+    nextSongButton.setBounds   (130, barY + 8, 98, 28);
+    addSongButton.setBounds    (getWidth() - 166, barY + 8, 92, 28);
+    removeSongButton.setBounds (getWidth() - 68,  barY + 8, 42, 28);
 
     placeKnob (droneLevelSlider, droneLevelLabel, rightX + 18,  r1Y, kW, kH);
     placeKnob (shimmerSlider,    shimmerLabel,    rightX + 121, r1Y, kW, kH);
