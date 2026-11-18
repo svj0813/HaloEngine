@@ -33,6 +33,7 @@ target_sources(HaloEngine
         Source/DSP/WavetableOsc.h
         Source/DSP/ModFilterEngine.h
         Source/DSP/PresetBank.h
+        Source/DSP/SetlistManager.h
 )
 
 target_compile_definitions(HaloEngine
