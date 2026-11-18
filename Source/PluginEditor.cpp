@@ -51,6 +51,19 @@ PluginEditor::PluginEditor (HaloEngineAudioProcessor& p)
     };
     savePresetButton.onClick = [this] { triggerSavePresetDialog(); };
 
+    masterVolSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    masterVolSlider.setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
+    masterVolSlider.setColour (juce::Slider::rotarySliderFillColourId, juce::Colour (0xffF59E0B));
+    addAndMakeVisible (masterVolSlider);
+
+    masterVolLabel.setText ("MASTER", juce::dontSendNotification);
+    masterVolLabel.setFont (juce::FontOptions (8.5f, juce::Font::bold));
+    masterVolLabel.setColour (juce::Label::textColourId, juce::Colour (0xffF59E0B));
+    masterVolLabel.setJustificationType (juce::Justification::centred);
+    addAndMakeVisible (masterVolLabel);
+
+    masterVolAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "MASTER_VOL", masterVolSlider);
+
     // ==========================================================================
     // GLOBAL ROOT KEY + OCTAVE BAR (ALWAYS ON SCREEN)
     // ==========================================================================
@@ -133,13 +146,13 @@ PluginEditor::PluginEditor (HaloEngineAudioProcessor& p)
     removeSongButton.onClick = [this] { setlistManager.removeCurrentSlot(); repaint(); };
 
     configureKnob (droneLevelSlider, droneLevelLabel, "DRONE LVL",   juce::Colour (0xff4FD1C5));
-    configureKnob (shimmerSlider,    shimmerLabel,    "SHIMMER OCT", juce::Colour (0xffA78BFA));
-    configureKnob (decaySlider,      decayLabel,      "REVERB TIME", juce::Colour (0xff38BDF8));
-    configureKnob (mixSlider,        mixLabel,        "REVERB MIX",  juce::Colour (0xff4FD1C5));
+    configureKnob (shimmerSlider,    shimmerLabel,    "SHIMMER", juce::Colour (0xffA78BFA));
+    configureKnob (decaySlider,      decayLabel,      "TIME", juce::Colour (0xff38BDF8));
+    configureKnob (mixSlider,        mixLabel,        "MIX",  juce::Colour (0xff4FD1C5));
 
-    configureKnob (spaceWarpSlider,  spaceWarpLabel,  "CLOUD SIZE",  juce::Colour (0xffA78BFA));
-    configureKnob (spaceModSlider,   spaceModLabel,   "CHORUS MOD",  juce::Colour (0xff38BDF8));
-    configureKnob (spaceDampSlider,  spaceDampLabel,  "AIR DAMP",    juce::Colour (0xff94A3B8));
+    configureKnob (spaceWarpSlider,  spaceWarpLabel,  "SIZE",  juce::Colour (0xffA78BFA));
+    configureKnob (spaceModSlider,   spaceModLabel,   "CHORUS",  juce::Colour (0xff38BDF8));
+    configureKnob (spaceDampSlider,  spaceDampLabel,  "DAMP",    juce::Colour (0xff94A3B8));
 
     droneLevelAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "DRONE_LEVEL",    droneLevelSlider);
     shimmerAtt    = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.apvts, "SHIMMER_AMT",    shimmerSlider);
@@ -518,10 +531,11 @@ void PluginEditor::paint (juce::Graphics& g)
         int setlistH = 44;
         int mainAreaBottom = getHeight() - setlistH - 18;
         int rightX = getWidth() - 356;
+        int revCardH = 198;
         g.setColour (juce::Colour (0xff101622));
-        g.fillRoundedRectangle (static_cast<float> (rightX), static_cast<float> (topOffset), 340.0f, static_cast<float> (mainAreaBottom - topOffset), 8.0f);
+        g.fillRoundedRectangle (static_cast<float> (rightX), static_cast<float> (topOffset), 340.0f, static_cast<float> (revCardH), 8.0f);
         g.setColour (juce::Colour (0xff1E2636));
-        g.drawRoundedRectangle (static_cast<float> (rightX), static_cast<float> (topOffset), 340.0f, static_cast<float> (mainAreaBottom - topOffset), 8.0f, 1.0f);
+        g.drawRoundedRectangle (static_cast<float> (rightX), static_cast<float> (topOffset), 340.0f, static_cast<float> (revCardH), 8.0f, 1.0f);
 
         int barY = getHeight() - setlistH - 10;
         g.setColour (juce::Colour (0xff101622));
@@ -545,9 +559,70 @@ void PluginEditor::paint (juce::Graphics& g)
             g.drawText (badge, 232, barY, 446, setlistH, juce::Justification::centred);
         }
 
-        g.setFont (juce::FontOptions (11.0f, juce::Font::bold));
+        g.setFont (juce::FontOptions (10.5f, juce::Font::bold));
         g.setColour (juce::Colour (0xffA78BFA));
-        g.drawText ("REVERB & SHIMMER", rightX + 16, topOffset + 12, 240, 16, juce::Justification::left);
+        g.drawText ("REVERB & SHIMMER", rightX + 14, topOffset + 8, 240, 15, juce::Justification::left);
+
+        int vizTop = topOffset + 208;
+        int vizH = mainAreaBottom - vizTop;
+        juce::Rectangle<float> vizRect (static_cast<float> (rightX), static_cast<float> (vizTop), 340.0f, static_cast<float> (vizH));
+        g.setColour (juce::Colour (0xff101622));
+        g.fillRoundedRectangle (vizRect, 8.0f);
+        g.setColour (juce::Colour (0xff1E2636));
+        g.drawRoundedRectangle (vizRect, 8.0f, 1.0f);
+
+        g.setFont (juce::FontOptions (10.5f, juce::Font::bold));
+        g.setColour (juce::Colour (0xff4FD1C5));
+        g.drawText ("PARAMETER & SHIMMER VISUALIZER", rightX + 14, vizTop + 8, 280, 15, juce::Justification::left);
+
+        juce::Rectangle<float> waveBox (vizRect.getX() + 12.0f, vizRect.getY() + 28.0f, vizRect.getWidth() - 24.0f, vizRect.getHeight() - 86.0f);
+        g.setColour (juce::Colour (0xff0B0F17));
+        g.fillRoundedRectangle (waveBox, 6.0f);
+        g.setColour (juce::Colour (0xff1B2332));
+        g.drawRoundedRectangle (waveBox, 6.0f, 1.0f);
+
+        juce::Path vizPath;
+        float midY = waveBox.getCentreY();
+        float ampY = waveBox.getHeight() * 0.40f;
+        float startX = waveBox.getX() + 8.0f;
+        float stepX  = (waveBox.getWidth() - 16.0f) / static_cast<float> (HaloEngineAudioProcessor::scopeSize - 1);
+        for (int i = 0; i < HaloEngineAudioProcessor::scopeSize; ++i)
+        {
+            float sample = audioProcessor.scopeSamples[static_cast<size_t> (i)].load (std::memory_order_relaxed);
+            float px = startX + i * stepX;
+            float py = midY - sample * ampY;
+            if (i == 0) vizPath.startNewSubPath (px, py);
+            else vizPath.lineTo (px, py);
+        }
+        g.setColour (juce::Colour (0xffA78BFA).withAlpha (0.28f));
+        g.strokePath (vizPath, juce::PathStrokeType (3.5f));
+        g.setColour (juce::Colour (0xff4FD1C5));
+        g.strokePath (vizPath, juce::PathStrokeType (1.6f));
+
+        const std::array<std::pair<juce::String, float>, 4> meters {{
+            { "MORPH X", *audioProcessor.apvts.getRawParameterValue ("MORPH_X") },
+            { "MORPH Y", *audioProcessor.apvts.getRawParameterValue ("MORPH_Y") },
+            { "SHIMMER", *audioProcessor.apvts.getRawParameterValue ("SHIMMER_AMT") },
+            { "REV MIX", *audioProcessor.apvts.getRawParameterValue ("AMBIENCE_MIX") }
+        }};
+        float barStartY = waveBox.getBottom() + 8.0f;
+        float colW = (vizRect.getWidth() - 36.0f) / 4.0f;
+        for (size_t m = 0; m < 4; ++m)
+        {
+            float bx = vizRect.getX() + 12.0f + static_cast<float> (m) * (colW + 4.0f);
+            g.setFont (juce::FontOptions (8.5f, juce::Font::bold));
+            g.setColour (juce::Colour (0xff94A3B8));
+            g.drawText (meters[m].first, static_cast<int> (bx), static_cast<int> (barStartY), static_cast<int> (colW), 12, juce::Justification::centred);
+
+            g.setColour (juce::Colour (0xff171E2B));
+            g.fillRoundedRectangle (bx, barStartY + 14.0f, colW, 7.0f, 3.0f);
+            g.setColour (m % 2 == 0 ? juce::Colour (0xff4FD1C5) : juce::Colour (0xffA78BFA));
+            g.fillRoundedRectangle (bx, barStartY + 14.0f, colW * juce::jlimit (0.0f, 1.0f, meters[m].second), 7.0f, 3.0f);
+
+            g.setFont (juce::FontOptions (8.5f, juce::Font::plain));
+            g.setColour (juce::Colour (0xffCBD5E1));
+            g.drawText (juce::String (meters[m].second, 2), static_cast<int> (bx), static_cast<int> (barStartY + 23.0f), static_cast<int> (colW), 12, juce::Justification::centred);
+        }
     }
     else
     {
@@ -651,14 +726,17 @@ void PluginEditor::paint (juce::Graphics& g)
 void PluginEditor::resized()
 {
     // Top Header Controls
-    stageTabButton.setBounds   (268, 11, 74, 28);
-    synthTabButton.setBounds   (348, 11, 102, 28);
+    stageTabButton.setBounds   (248, 11, 68, 28);
+    synthTabButton.setBounds   (320, 11, 96, 28);
 
-    prevPresetButton.setBounds (462, 11, 22, 28);
-    presetSelector.setBounds   (486, 11, 198, 28);
-    nextPresetButton.setBounds (686, 11, 22, 28);
-    initPresetButton.setBounds (716, 11, 48, 28);
-    savePresetButton.setBounds (768, 11, 52, 28);
+    prevPresetButton.setBounds (424, 11, 20, 28);
+    presetSelector.setBounds   (446, 11, 178, 28);
+    nextPresetButton.setBounds (626, 11, 20, 28);
+    initPresetButton.setBounds (652, 11, 44, 28);
+    savePresetButton.setBounds (700, 11, 48, 28);
+
+    masterVolLabel.setBounds   (756, 3,  48, 11);
+    masterVolSlider.setBounds  (762, 13, 36, 35);
 
     // Always-Visible Global Root Key + Octave Bar (y = 56..92)
     int kx = 92;
@@ -693,26 +771,19 @@ void PluginEditor::resized()
     int rightX = getWidth() - 356;
     morphPad.setBounds (16, topOffset + 20, rightX - 28, mainAreaBottom - (topOffset + 20));
 
-    int kW = 98;
-    int kH = 78;
-    int r1Y = topOffset + 34;
-    int r2Y = r1Y + kH + 22;
-    int r3Y = r2Y + kH + 22;
+    int kW = 76;
+    int kH = 54;
+    int r1Y = topOffset + 28;
+    int r2Y = r1Y + kH + 24;
 
-    prevSongButton.setBounds   (26,  barY + 8, 98, 28);
-    nextSongButton.setBounds   (130, barY + 8, 98, 28);
-    addSongButton.setBounds    (getWidth() - 166, barY + 8, 92, 28);
-    removeSongButton.setBounds (getWidth() - 68,  barY + 8, 42, 28);
+    placeKnob (droneLevelSlider, droneLevelLabel, rightX + 10,  r1Y, kW, kH);
+    placeKnob (shimmerSlider,    shimmerLabel,    rightX + 91,  r1Y, kW, kH);
+    placeKnob (decaySlider,      decayLabel,      rightX + 172, r1Y, kW, kH);
+    placeKnob (mixSlider,        mixLabel,        rightX + 253, r1Y, kW, kH);
 
-    placeKnob (droneLevelSlider, droneLevelLabel, rightX + 18,  r1Y, kW, kH);
-    placeKnob (shimmerSlider,    shimmerLabel,    rightX + 121, r1Y, kW, kH);
-    placeKnob (decaySlider,      decayLabel,      rightX + 224, r1Y, kW, kH);
-
-    placeKnob (spaceWarpSlider,  spaceWarpLabel,  rightX + 18,  r2Y, kW, kH);
-    placeKnob (spaceModSlider,   spaceModLabel,   rightX + 121, r2Y, kW, kH);
-    placeKnob (spaceDampSlider,  spaceDampLabel,  rightX + 224, r2Y, kW, kH);
-
-    placeKnob (mixSlider,        mixLabel,        rightX + 121, r3Y, kW, kH);
+    placeKnob (spaceWarpSlider,  spaceWarpLabel,  rightX + 46,  r2Y, kW, kH);
+    placeKnob (spaceModSlider,   spaceModLabel,   rightX + 132, r2Y, kW, kH);
+    placeKnob (spaceDampSlider,  spaceDampLabel,  rightX + 218, r2Y, kW, kH);
 
     // ==========================================================================
     // TAB 1: COMPACT SYNTH ENGINE LAYOUT

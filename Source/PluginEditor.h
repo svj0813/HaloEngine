@@ -289,6 +289,9 @@ private:
     juce::ComboBox   presetSelector;
     juce::TextButton initPresetButton { "INIT" };
     juce::TextButton savePresetButton { "SAVE" };
+    juce::Slider masterVolSlider;
+    juce::Label  masterVolLabel;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> masterVolAtt;
 
     std::array<juce::TextButton, 12> globalKeyButtons;
     std::array<juce::TextButton, 3>  octaveButtons;
